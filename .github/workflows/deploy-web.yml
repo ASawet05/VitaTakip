@@ -1,9 +1,8 @@
 name: Deploy VitaTakip Web App (PWA) to GitHub Pages
 
-# Depo gizli (private) olduğu için ücretsiz planda GitHub Pages kullanılamaz; bu iş akışı yalnızca elle
-# çalıştırılır. Depo herkese açık yapılırsa veya ücretli plana geçilirse "push" tetikleyicisi geri eklenebilir.
-# Kendi alan adında yayın için netlify.toml veya vercel.json kullanılabilir.
 on:
+  push:
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:

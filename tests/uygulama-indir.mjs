@@ -25,7 +25,7 @@ const modalState = p => p.evaluate(() => {
   await p.evaluate(() => document.querySelector('#authModal .vta-download button').click()); await sleep(300);
   const s = await modalState(p);
   log('Android → pencere açılır, Android sekmesi seçili ve "Bu cihaz"', s.open && s.tab === 'android' && s.here === 'android', JSON.stringify({ tab: s.tab, here: s.here }));
-  log('APK bağlantısı GitHub Releases\'teki son sürüm', s.apk === 'https://github.com/ASawet05/VitaTT/releases/latest/download/VitaTakip.apk', s.apk);
+  log('APK bağlantısı GitHub Releases\'teki son sürüm', s.apk === 'https://github.com/ASawet05/VitaTakip/releases/latest/download/VitaTakip.apk', s.apk);
   log('Kurulum adımları ve test sürümü notu', /Bilinmeyen uygulamaları/.test(s.text) && /test sürümü/.test(s.text));
   const z = await p.evaluate(() => { const r = document.querySelector('#vitaInstallModal .vita-dl-dialog').getBoundingClientRect(); const top = document.elementFromPoint(r.left + r.width / 2, r.top + 20); return Boolean(top && top.closest('#vitaInstallModal')); });
   log('Pencere giriş ekranının üstünde görünüyor', z);

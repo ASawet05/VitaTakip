@@ -6,7 +6,7 @@
    Adrese #indir eklenirse pencere doğrudan açılır (ör. paylaşılan bağlantı). */
 (function(){
   'use strict';
-  const APK_URL='https://github.com/ASawet05/VitaTT/releases/latest/download/VitaTakip.apk';
+  const APK_URL='https://github.com/ASawet05/VitaTakip/releases/latest/download/VitaTakip.apk';
   const APK_SIZE='yaklaşık 28 MB';
   let deferredPrompt=null, modal=null, returnFocus=null, previousOverflow='', autoHideTimer=null, activeTab='';
 
