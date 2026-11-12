@@ -686,7 +686,7 @@ window.VitaAIChat = VitaAIChat;
           <div class="p-3 text-xs text-slate-600 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <span><strong>"${escapeHtmlText(rawQuery)}"</strong> için yerel veritabanında kayıt bulunamadı.</span>
             <button type="button" onclick="triggerAiPhotoBoxFallback()" class="px-3 py-1.5 rounded-lg bg-indigo-700 text-white font-bold text-[11px] cursor-pointer shrink-0">
-              <i class="fa-solid fa-camera mr-1"></i>Kutu Fotoğrafıyla AI Tanı
+              <i class="fa-solid fa-camera mr-1"></i>Barkodu fotoğraftan oku
             </button>
           </div>
         `;
@@ -712,7 +712,7 @@ window.VitaAIChat = VitaAIChat;
         });
         if (!hasPerm) {
           if (typeof window.updateCameraPermissionUI === "function") window.updateCameraPermissionUI();
-          setBarcodeCameraStatus("Kamera ve AI Fotoğraf Analizi izni kapalı veya reddedildi. Ayarlar > İzinler > Kamera Erişim Onayı menüsünden izni etkinleştirin.", true);
+          setBarcodeCameraStatus("Kamera izni kapalı veya reddedildi. Ayarlar > İzinler > Kamera Erişim Onayı menüsünden izni etkinleştirin.", true);
           return;
         }
       }
@@ -731,7 +731,7 @@ window.VitaAIChat = VitaAIChat;
         });
         if (!hasPerm) {
           if (typeof window.updateCameraPermissionUI === "function") window.updateCameraPermissionUI();
-          setBarcodeCameraStatus("Kamera ve AI Fotoğraf Analizi izni kapalı veya reddedildi. Ayarlar > İzinler > Kamera Erişim Onayı menüsünden izni etkinleştirin.", true);
+          setBarcodeCameraStatus("Kamera izni kapalı veya reddedildi. Ayarlar > İzinler > Kamera Erişim Onayı menüsünden izni etkinleştirin.", true);
           return;
         }
       }
@@ -1465,7 +1465,7 @@ window.VitaAIChat = VitaAIChat;
 
       if (!norm) {
         setBarcodeLookupStatus(
-          `<div class="space-y-2"><strong class="block text-amber-950">Ürün veritabanında bulunamadı. Kutu fotoğrafını çekerek AI ile tanımak ister misiniz?</strong><button type="button" onclick="triggerAiPhotoBoxFallback()" class="rounded-xl bg-indigo-700 hover:bg-indigo-800 px-3.5 py-2 text-xs font-black text-white inline-flex items-center gap-1.5 cursor-pointer"><i class="fa-solid fa-camera"></i><span>Kutu Fotoğrafı Çek &amp; Yapay Zeka ile Otomatik Doldur</span></button></div>`,
+          `<div class="space-y-2"><strong class="block text-amber-950">Ürün bu cihazdaki listede bulunamadı.</strong><p class="text-[11px] text-amber-900">Ürün adını elle yazarak ekleyebilirsiniz.</p></div>`,
           "warning"
         );
         return null;
@@ -1528,7 +1528,8 @@ window.VitaAIChat = VitaAIChat;
       if (preview) { preview.src = vitaBarcodePhotoObjectUrl; preview.classList.remove("hidden"); }
       const aiResult = document.getElementById("barcodeAiResult");
       if (aiResult) aiResult.classList.add("hidden");
-      showToast("Kutu Fotoğrafı Yüklendi", "Şimdi 'Yapay Zeka (AI) ile Kutuyu Tanı' veya 'Fotoğraftaki barkodu oku' butonuna tıklayabilirsiniz.", "info");
+      /* Fotoğraf seçilince barkod hemen okunur (ayrı bir düğmeye basmak gerekmez). */
+      decodeBarcodeFromPhoto();
     }
 
     async function decodeBarcodeFromPhoto() {
@@ -1555,9 +1556,9 @@ window.VitaAIChat = VitaAIChat;
         const reader = new zxing.BrowserMultiFormatReader();
         const decoded = await reader.decodeFromImageElement(preview);
         if (decoded?.getText) handleBarcodeDetected(decoded.getText(), decoded.getBarcodeFormat ? decoded.getBarcodeFormat() : "Fotoğraf Barkodu");
-        else throw new Error("Fotoğrafta barkod seçilemedi. 'Yapay Zeka (AI) ile Kutuyu Tanı' butonunu kullanabilirsiniz.");
+        else throw new Error("Fotoğrafta barkod bulunamadı. Barkodu yakından, net ve düz çekin veya ürün adını yazın.");
       } catch (error) {
-        const message = error?.message || "Fotoğraftaki barkod okunamadı. Yapay Zeka (AI) ile kutu tanımayı deneyin.";
+        const message = /NotFound|No MultiFormat|not found/i.test(String(error?.message || error?.name || "")) || !error?.message ? "Fotoğrafta barkod bulunamadı. Barkodu yakından, net ve düz çekin veya ürün adını yazın." : error.message;
         setBarcodeCameraStatus(message, true);
         showToast("Barkod okunamadı", message, "warning");
       }

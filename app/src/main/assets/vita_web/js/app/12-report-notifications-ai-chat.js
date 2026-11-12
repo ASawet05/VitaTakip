@@ -1708,9 +1708,10 @@ function getDoctorReportMode() {
      * işlemlerinden önce kamera erişim onayını ve cihaz iznini sorgulayan merkezi fonksiyon.
      */
     async function ensureCameraPermissionForFeature(featureType = "barcode", options = {}) {
-      const featureLabel = featureType === "ai_photo"
-        ? "Yapay Zeka (AI) Fotoğraf Analizi"
-        : "Barkod / Karekod Okuyucu";
+      /* Var olan bir fotoğrafı (galeri/dosya) seçip içindeki barkodu okumak kamera izni GEREKTİRMEZ;
+         izin yalnızca canlı kamera taraması içindir. Aksi hâlde izin verilmemiş cihazlarda fotoğraf yükleme hiç çalışmaz. */
+      if (featureType === "ai_photo") return true;
+      const featureLabel = "Barkod / Karekod Okuyucu";
 
       const initialInfo = await queryCameraPermissionStatus();
 

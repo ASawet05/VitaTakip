@@ -570,7 +570,7 @@ function renderDailyTab() {
 
       if (!navigator.mediaDevices || typeof navigator.mediaDevices.getUserMedia !== "function") {
         stopScanner();
-        showAddSupFeedback("Bu cihazda doğrudan kamera akışı açılamadı. 'Fotoğraf Çek / AI ile Kutuyu Tanı' butonuna basarak kutu fotoğrafı çekebilir veya 30 hazır takviye listesinden seçebilirsiniz.", "warning");
+        showAddSupFeedback("Bu cihazda doğrudan kamera akışı açılamadı. 'Fotoğraftan barkod oku' düğmesiyle barkodun fotoğrafını çekebilir veya ürün adını yazabilirsiniz.", "warning");
         return;
       }
 
@@ -618,11 +618,11 @@ function renderDailyTab() {
             });
           } catch (_) {
             if (statusEl) {
-              statusEl.textContent = "Kamera açık. Barkod algılanamazsa 'Fotoğraf Çek / AI ile Kutuyu Tanı' butonuna dokunun.";
+              statusEl.textContent = "Kamera açık. Barkod algılanamazsa 'Fotoğraftan barkod oku' düğmesini kullanın veya ürün adını yazın.";
             }
           }
         } else if (statusEl) {
-          statusEl.textContent = "Kamera açık. Barkod algılanamazsa 'Fotoğraf Çek / AI ile Kutuyu Tanı' butonuna dokunun.";
+          statusEl.textContent = "Kamera açık. Barkod algılanamazsa 'Fotoğraftan barkod oku' düğmesini kullanın veya ürün adını yazın.";
         }
       } catch (err) {
         stopScanner();
@@ -719,12 +719,15 @@ function renderDailyTab() {
 
       const digitsOnly = cleanBarcode.replace(/\D/g, "");
       const lowerQuery = cleanBarcode.toLocaleLowerCase("tr-TR");
+      /* EAN-13 "0..." kodlarını okuyucular 12 haneli UPC-A olarak döndürür; karşılaştırma normalize edilmiş kodla yapılır. */
+      const scanNorm = typeof normalizeBarcodeForMatch === "function" ? normalizeBarcodeForMatch(cleanBarcode) : "";
+      const sameCode = code => code === cleanBarcode || (digitsOnly.length >= 8 && code === digitsOnly) ||
+        Boolean(scanNorm && typeof normalizeBarcodeForMatch === "function" && normalizeBarcodeForMatch(code) === scanNorm);
 
       // 1. ÖNCE VITA_SUPPLEMENT_DB (Takviye Veri Tabanı) içerisinde barkod veya isimle ara
       const supDb = Array.isArray(window.VITA_SUPPLEMENT_DB) ? window.VITA_SUPPLEMENT_DB : [];
       const supFound = supDb.find(item =>
-        item.barcode === cleanBarcode ||
-        (digitsOnly.length >= 8 && item.barcode === digitsOnly) ||
+        sameCode(item.barcode) ||
         item.urunAdi.toLocaleLowerCase("tr-TR").includes(lowerQuery) ||
         item.marka.toLocaleLowerCase("tr-TR").includes(lowerQuery) ||
         item.etkenMadde.toLocaleLowerCase("tr-TR").includes(lowerQuery)
@@ -742,8 +745,7 @@ function renderDailyTab() {
       // 2. VITA_PRESCRIPTION_DRUG_DB (Reçeteli İlaç) içerisinde mi kontrol et
       const rxDb = Array.isArray(window.VITA_PRESCRIPTION_DRUG_DB) ? window.VITA_PRESCRIPTION_DRUG_DB : [];
       const rxFound = rxDb.find(item =>
-        item.barcode === cleanBarcode ||
-        (digitsOnly.length >= 8 && item.barcode === digitsOnly) ||
+        sameCode(item.barcode) ||
         item.urunAdi.toLocaleLowerCase("tr-TR").includes(lowerQuery)
       );
 
@@ -762,7 +764,7 @@ function renderDailyTab() {
       }
 
       // 3. İkisinde de yoksa: AI Kutu Tanıma Fallback
-      showAddSupFeedback(`⚠️ Ürün veritabanında bulunamadı (${cleanBarcode}). Kutu fotoğrafını çekerek AI ile tanımak ister misiniz?`, "warning");
+      showAddSupFeedback(`⚠️ Ürün veritabanında bulunamadı (${cleanBarcode}). Ürün adını yazarak ekleyebilirsiniz.`, "warning");
       if (fallbackBox) fallbackBox.classList.remove("hidden");
     }
 
@@ -775,7 +777,7 @@ function renderDailyTab() {
         if (!hasPerm) {
           if (typeof window.updateCameraPermissionUI === "function") window.updateCameraPermissionUI();
           showAddSupFeedback(
-            `🔒 Yapay zeka kutu fotoğraf analizi için kamera erişim onayı gereklidir. <button type="button" onclick="if(typeof openCameraPermissionsInSettings==='function')openCameraPermissionsInSettings();" class="underline font-black text-indigo-800 hover:text-indigo-950 ml-1 cursor-pointer">Ayarlar &gt; İzinler &gt; Kamera Erişim Onayı</button> menüsünden izni onaylayın.`,
+            `🔒 Fotoğraftan barkod okumak için kamera erişim onayı gereklidir. <button type="button" onclick="if(typeof openCameraPermissionsInSettings==='function')openCameraPermissionsInSettings();" class="underline font-black text-indigo-800 hover:text-indigo-950 ml-1 cursor-pointer">Ayarlar &gt; İzinler &gt; Kamera Erişim Onayı</button> menüsünden izni onaylayın.`,
             "warning",
             true
           );
@@ -813,7 +815,7 @@ function renderDailyTab() {
         if (!hasPerm) {
           if (event?.target) event.target.value = "";
           showAddSupFeedback(
-            `🔒 Kamera ve AI Fotoğraf Analizi izni kapalıdır. <button type="button" onclick="if(typeof openCameraPermissionsInSettings==='function')openCameraPermissionsInSettings();" class="underline font-black text-indigo-800 hover:text-indigo-950 ml-1 cursor-pointer">Ayarlar &gt; İzinler</button> menüsünden kamera erişimini onaylayın.`,
+            `🔒 Kamera izni kapalıdır. <button type="button" onclick="if(typeof openCameraPermissionsInSettings==='function')openCameraPermissionsInSettings();" class="underline font-black text-indigo-800 hover:text-indigo-950 ml-1 cursor-pointer">Ayarlar &gt; İzinler</button> menüsünden kamera erişimini onaylayın.`,
             "warning",
             true
           );
@@ -824,7 +826,7 @@ function renderDailyTab() {
       const fallbackBox = document.getElementById("addSupFallbackConfirmBox");
       if (fallbackBox) fallbackBox.classList.add("hidden");
 
-      showAddSupFeedback("⏳ Kutu fotoğrafı barkod ve Yapay Zeka (AI Vision + Yerel Klinik Motor) ile analiz ediliyor, lütfen bekleyin...", "info");
+      showAddSupFeedback("⏳ Fotoğraftaki barkod okunuyor...", "info");
 
       try {
         // 1. Önce fotoğraftaki barkodu doğrudan okumayı dene (BarcodeDetector varsa)
@@ -838,6 +840,23 @@ function renderDailyTab() {
               return;
             }
           } catch (_) {}
+        }
+
+        // 2. Tarayıcıda BarcodeDetector yoksa (ör. masaüstü Chrome, iOS Safari) cihaz içi ZXing okuyucusu kullanılır.
+        if (typeof loadZXingBrowser === "function") {
+          const imageUrl = URL.createObjectURL(file);
+          try {
+            const img = new Image();
+            img.src = imageUrl;
+            await img.decode();
+            const zxing = await loadZXingBrowser();
+            const decoded = await new zxing.BrowserMultiFormatReader().decodeFromImageElement(img);
+            if (decoded && typeof decoded.getText === "function" && decoded.getText()) {
+              handleAddSupBarcodeDecoded(decoded.getText());
+              return;
+            }
+          } catch (_) { /* fotoğrafta barkod yok veya okunamadı */ }
+          finally { URL.revokeObjectURL(imageUrl); }
         }
 
         const base64Data = await convertAddSupFileToBase64(file);
@@ -870,7 +889,7 @@ function renderDailyTab() {
 
         /* Cihazda fotoğraftan yazı okuma yoktur: eşleşme yoksa ürün uydurulmaz. */
         if (!parsedJson || !parsedJson.urunAdi) {
-          throw new Error("Ürün fotoğraftan tanınamadı. Bu sürümde fotoğraftan yazı okuma yok ve fotoğraf hiçbir yere gönderilmez. Listeden seçin, barkodu okutun veya ürün adını elle yazın.");
+          throw new Error("Fotoğrafta okunabilir bir barkod bulunamadı. Barkodu yakından, net ve düz çekin ya da ürün adını yazın.");
         }
 
         fillAddSupplementModalFormFromItem({

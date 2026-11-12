@@ -28,5 +28,6 @@ Gerçek Chrome ile (puppeteer-core) uygulamayı açıp kullanıcı gibi dener.
 | `guvenlik-xss.mjs` | Kullanıcı girdisinin kod olarak çalışmaması (XSS) |
 | `ana-sayfa-grafik.mjs` | Ana sayfa karşılama kartı ve tahlil gelişim grafiği |
 | `denetim-duzeltmeleri.mjs` | Denetim düzeltmeleri: yedeğin Android köprüsüyle kaydı, içe aktarma doğrulaması, sahte fotoğraf tanıma yok, uydurma barkod yok, hesap silme (IndexedDB dahil), tahlil aralık kontrolü, eksik profil/eGFR, ALT, çoklu sekme |
+| `fotograf-barkod.mjs` | Fotoğraftan barkod okuma (BarcodeDetector yokken ZXing), 0 ile başlayan EAN-13/UPC-A eşleşmesi, kamera izni olmadan galeriden fotoğraf, barkodsuz fotoğrafta ürün uydurmama |
 
 Çalıştırma: `node smoke.mjs` (her biri bağımsızdır).
