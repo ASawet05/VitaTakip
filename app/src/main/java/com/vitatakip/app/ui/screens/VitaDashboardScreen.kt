@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.vitatakip.app.ui.screens
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -68,23 +68,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.example.R
-import com.example.data.model.BloodTestBiomarkerSpec
-import com.example.data.model.BloodTestHistoryEntry
-import com.example.data.model.BloodTestTrendCatalog
-import com.example.data.model.ClinicalInteractionAlert
-import com.example.data.model.ClinicalInteractionEngine
-import com.example.data.model.InteractionSeverity
-import com.example.data.model.Supplement
-import com.example.data.model.SupplementCategory
-import com.example.data.model.TimeOfDaySlot
-import com.example.data.model.VitalLog
-import com.example.ui.theme.VitaCoralHeart
-import com.example.ui.theme.VitaEmeraldDark
-import com.example.ui.theme.VitaEmeraldDeepBg
-import com.example.ui.theme.VitaGoldAccent
-import com.example.ui.theme.VitaMintLight
-import com.example.ui.theme.VitaSkyWater
+import com.vitatakip.app.R
+import com.vitatakip.app.data.model.BloodTestBiomarkerSpec
+import com.vitatakip.app.data.model.BloodTestHistoryEntry
+import com.vitatakip.app.data.model.BloodTestTrendCatalog
+import com.vitatakip.app.data.model.ClinicalInteractionAlert
+import com.vitatakip.app.data.model.ClinicalInteractionEngine
+import com.vitatakip.app.data.model.InteractionSeverity
+import com.vitatakip.app.data.model.Supplement
+import com.vitatakip.app.data.model.SupplementCategory
+import com.vitatakip.app.data.model.TimeOfDaySlot
+import com.vitatakip.app.data.model.VitalLog
+import com.vitatakip.app.ui.theme.VitaCoralHeart
+import com.vitatakip.app.ui.theme.VitaEmeraldDark
+import com.vitatakip.app.ui.theme.VitaEmeraldDeepBg
+import com.vitatakip.app.ui.theme.VitaGoldAccent
+import com.vitatakip.app.ui.theme.VitaMintLight
+import com.vitatakip.app.ui.theme.VitaSkyWater
 import java.text.SimpleDateFormat
 import java.util.Locale
 

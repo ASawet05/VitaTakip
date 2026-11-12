@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.vitatakip.app.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,10 +35,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.R
-import com.example.data.model.Supplement
-import com.example.data.model.SupplementCategory
-import com.example.data.model.VitalLog
+import com.vitatakip.app.R
+import com.vitatakip.app.data.model.Supplement
+import com.vitatakip.app.data.model.SupplementCategory
+import com.vitatakip.app.data.model.VitalLog
 
 @Composable
 fun VitaAnalyticsScreen(
@@ -80,7 +80,7 @@ fun VitaAnalyticsScreen(
         item {
             ClinicalSynthesisReportCard(
                 supplements = supplements,
-                bloodEntries = com.example.data.model.BloodTestTrendCatalog.defaultHistoricalSeries
+                bloodEntries = com.vitatakip.app.data.model.BloodTestTrendCatalog.defaultHistoricalSeries
             )
         }
 
@@ -92,8 +92,8 @@ fun VitaAnalyticsScreen(
 
         item {
             BloodTestMultiLineDashboardCard(
-                entries = com.example.data.model.BloodTestTrendCatalog.defaultHistoricalSeries,
-                biomarkers = com.example.data.model.BloodTestTrendCatalog.biomarkers
+                entries = com.vitatakip.app.data.model.BloodTestTrendCatalog.defaultHistoricalSeries,
+                biomarkers = com.vitatakip.app.data.model.BloodTestTrendCatalog.biomarkers
             )
         }
 

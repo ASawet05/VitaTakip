@@ -1,4 +1,4 @@
-package com.example.ui.theme
+package com.vitatakip.app.ui.theme
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.shape.RoundedCornerShape

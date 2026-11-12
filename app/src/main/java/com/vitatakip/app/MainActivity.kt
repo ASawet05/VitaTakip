@@ -1,4 +1,4 @@
-package com.example
+package com.vitatakip.app
 
 import android.Manifest
 import android.annotation.SuppressLint
@@ -99,7 +99,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.example.ui.theme.MyApplicationTheme
+import com.vitatakip.app.ui.theme.MyApplicationTheme
 
 import java.io.File
 

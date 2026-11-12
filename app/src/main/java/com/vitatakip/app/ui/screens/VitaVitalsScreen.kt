@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.vitatakip.app.ui.screens
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
@@ -50,12 +50,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.R
-import com.example.data.model.VitalLog
-import com.example.data.model.VitalType
-import com.example.ui.theme.VitaGoldAccent
-import com.example.ui.theme.VitaMintLight
-import com.example.ui.theme.VitaSkyWater
+import com.vitatakip.app.R
+import com.vitatakip.app.data.model.VitalLog
+import com.vitatakip.app.data.model.VitalType
+import com.vitatakip.app.ui.theme.VitaGoldAccent
+import com.vitatakip.app.ui.theme.VitaMintLight
+import com.vitatakip.app.ui.theme.VitaSkyWater
 import java.text.SimpleDateFormat
 import java.util.Locale
 

@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.vitatakip.app.ui.screens
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -51,13 +51,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.example.R
-import com.example.data.model.ClinicalInteractionEngine
-import com.example.data.model.InteractionSeverity
-import com.example.data.model.Supplement
-import com.example.data.model.SupplementCategory
-import com.example.data.model.TimeOfDaySlot
-import com.example.ui.theme.VitaCoralHeart
+import com.vitatakip.app.R
+import com.vitatakip.app.data.model.ClinicalInteractionEngine
+import com.vitatakip.app.data.model.InteractionSeverity
+import com.vitatakip.app.data.model.Supplement
+import com.vitatakip.app.data.model.SupplementCategory
+import com.vitatakip.app.data.model.TimeOfDaySlot
+import com.vitatakip.app.ui.theme.VitaCoralHeart
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable

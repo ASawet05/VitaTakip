@@ -1,4 +1,4 @@
-package com.example.data.model
+package com.vitatakip.app.data.model
 
 data class ClinicalInteractionAlert(
     val id: String,

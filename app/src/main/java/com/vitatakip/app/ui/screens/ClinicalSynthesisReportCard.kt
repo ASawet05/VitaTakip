@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.vitatakip.app.ui.screens
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
@@ -42,8 +42,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.data.model.BloodTestHistoryEntry
-import com.example.data.model.Supplement
+import com.vitatakip.app.data.model.BloodTestHistoryEntry
+import com.vitatakip.app.data.model.Supplement
 
 data class ClinicalSynthesisAlarmItem(
     val level: String, // "CRITICAL" or "WARNING"

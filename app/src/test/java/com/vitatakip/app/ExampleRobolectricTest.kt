@@ -1,4 +1,4 @@
-package com.example
+package com.vitatakip.app
 
 import android.content.Context
 import android.view.ViewGroup
@@ -8,7 +8,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performScrollToNode
 import androidx.test.core.app.ApplicationProvider
-import com.example.ui.theme.MyApplicationTheme
+import com.vitatakip.app.ui.theme.MyApplicationTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
@@ -94,14 +94,14 @@ class ExampleRobolectricTest {
         assertTrue(conflictsJs.contains("evaluateClinicalDrugNutrientInteractions"))
 
         val items = listOf(
-            com.example.data.model.Supplement(
+            com.vitatakip.app.data.model.Supplement(
                 id = "1",
                 name = "Euthyrox (Levotiroksin)",
                 dosage = "100 mcg",
                 category = "Ilac",
                 timeOfDay = "Sabah"
             ),
-            com.example.data.model.Supplement(
+            com.vitatakip.app.data.model.Supplement(
                 id = "2",
                 name = "Demir (Fe) Kapsül",
                 dosage = "1 Kapsül",
@@ -109,12 +109,12 @@ class ExampleRobolectricTest {
                 timeOfDay = "Sabah"
             )
         )
-        val alerts = com.example.data.model.ClinicalInteractionEngine.evaluateInteractions(items)
+        val alerts = com.vitatakip.app.data.model.ClinicalInteractionEngine.evaluateInteractions(items)
         assertTrue("Expected Levothyroxine x Iron interaction alert", alerts.isNotEmpty())
 
         composeTestRule.setContent {
             MyApplicationTheme {
-                com.example.ui.screens.VitaDashboardScreen(
+                com.vitatakip.app.ui.screens.VitaDashboardScreen(
                     supplements = items,
                     vitalLogs = emptyList(),
                     waterGoalMl = 2500L,
@@ -166,7 +166,7 @@ class ExampleRobolectricTest {
 
         composeTestRule.setContent {
             MyApplicationTheme {
-                com.example.ui.screens.VitaAnalyticsScreen(
+                com.vitatakip.app.ui.screens.VitaAnalyticsScreen(
                     userEmail = "test@vitatakip.com",
                     userName = "Test Kullanıcı",
                     supplements = emptyList(),

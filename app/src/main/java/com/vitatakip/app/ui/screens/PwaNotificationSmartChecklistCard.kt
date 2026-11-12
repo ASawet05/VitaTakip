@@ -1,4 +1,4 @@
-package com.example.ui.screens
+package com.vitatakip.app.ui.screens
 
 import android.Manifest
 import android.content.Intent
@@ -52,10 +52,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.data.model.Supplement
-import com.example.ensureVitaNotificationChannel
-import com.example.postVitaSystemNotification
-import com.example.queryAndroidNotificationPermissionState
+import com.vitatakip.app.data.model.Supplement
+import com.vitatakip.app.ensureVitaNotificationChannel
+import com.vitatakip.app.postVitaSystemNotification
+import com.vitatakip.app.queryAndroidNotificationPermissionState
 
 enum class SmartChecklistFilter(val label: String) {
     ALL("Tümü"),

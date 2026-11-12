@@ -1,4 +1,4 @@
-package com.example.data.model
+package com.vitatakip.app.data.model
 
 import java.util.Date
 
