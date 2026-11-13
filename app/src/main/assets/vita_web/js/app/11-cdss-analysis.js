@@ -472,46 +472,19 @@ function checkArchivedLabExists() {
   return false;
 }
 
+/* Seçili belirtilerin TEK doğru kaynağı state.selectedSymptoms'tir: her belirti kartı (toggleAnamnesisCard)
+   seçimi doğrudan buraya yazar. Eskiden bu fonksiyon seçimi kartların GÖRÜNÜMÜNDEN yeniden kuruyordu; kartlar henüz
+   seçili çizilmemişken (ör. sayfa yeni açıldığında analiz/rapor çağrısı) kayıtlı belirtiler boş listeyle siliniyordu.
+   Artık ters yönde çalışır: kartların görünümü durumdan güncellenir, durum asla ekrandan silinmez. */
 function syncSelectedSymptomsFromDOM() {
   if (!(state.selectedSymptoms instanceof Set)) {
     state.selectedSymptoms = new Set(Array.isArray(state.selectedSymptoms) ? state.selectedSymptoms : []);
   }
-  const neyimRoot = document.getElementById("view-neyim") || document;
-  const anamnesisCards = neyimRoot.querySelectorAll(".anamnesis-card");
-  if (anamnesisCards.length > 0) {
-    const domSet = new Set();
-    anamnesisCards.forEach(card => {
-      const match = (card.getAttribute("onclick") || "").match(/toggleAnamnesisCard\(this,\s*'([^']+)'\)/);
-      const key = (match && match[1]) ? match[1] : (card.dataset?.symptom || null);
-      if (!key) return;
-      const dot = card.querySelector(".check-dot");
-      const hasCheckIcon = Boolean(dot && dot.querySelector(".fa-check"));
-      const isCardSelected =
-        card.classList.contains("border-indigo-500") ||
-        card.classList.contains("is-selected") ||
-        card.classList.contains("selected") ||
-        card.getAttribute("aria-pressed") === "true" ||
-        hasCheckIcon;
-      if (isCardSelected) {
-        domSet.add(key);
-      }
-    });
-    state.selectedSymptoms = domSet;
-    state.selectedSymptomsArray = Array.from(domSet);
-    try {
-      if (typeof safeLocalStorageSetItem === "function") {
-        safeLocalStorageRemoveItem("vitatakip_selected_symptoms_array"); /* eski, kullanıcıya özel olmayan anahtar */
-        if (typeof activeUserId !== "undefined" && activeUserId) {
-          safeLocalStorageSetItem(`vitatakip_symptoms_${activeUserId}`, JSON.stringify(state.selectedSymptomsArray));
-        }
-      }
-    } catch (_) {}
-    return [...state.selectedSymptomsArray];
+  if (typeof syncAnamnesisCardsUI === "function") {
+    try { syncAnamnesisCardsUI(); } catch (_) {}
   }
-
-  const list = Array.from(state.selectedSymptoms);
-  state.selectedSymptomsArray = [...list];
-  return list;
+  state.selectedSymptomsArray = Array.from(state.selectedSymptoms);
+  return [...state.selectedSymptomsArray];
 }
 
 function getSelectedSymptoms() {

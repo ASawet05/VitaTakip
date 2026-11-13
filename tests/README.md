@@ -31,6 +31,7 @@ Gerçek Chrome ile (puppeteer-core) uygulamayı açıp kullanıcı gibi dener.
 | `web-pwa.mjs` | Web/PWA: servis çalışanı, Chrome yüklenebilirlik denetimi, manifest, 390px telefon ekranında yatay taşma yok, çevrimdışı açılış, Android köprüsü olmadan çalışma. Canlı site için: `node web-pwa.mjs https://asawet05.github.io/VitaTakip/` |
 | `hesap-kaliciligi.mjs` | Adında "Örnek", "Deneme", "Test", "Misafir" geçen gerçek hesaplar ve verileri sayfa yenilenince silinmez; yalnızca eski sabit kimlikli misafir hesabı temizlenir |
 | `sifre.mjs` | Yerel hesap şifresi: PBKDF2 + kullanıcı başına tuz, Türkçe karakter çakışması yok, eski kayıtların girişte taşınması, hesap silme onayında "sil"/"SİL" |
+| `yedek-geri-yukleme.mjs` | JSON yedek ↔ localStorage tam döngüsü: veri gir → Yedek İndir → hesabı sil → yeni hesap → Yedekten Geri Yükle → profil, ilaçlar, takviyeler, sıvı, tahliller, geçmiş, belirti, hekim notu geri gelir ve yenilemeden sonra kalır (seçili belirtilerin yenilemede silinmesi hatasının testi) |
 | `fotograf-barkod.mjs` | Fotoğraftan barkod okuma (BarcodeDetector yokken ZXing), 0 ile başlayan EAN-13/UPC-A eşleşmesi, kamera izni olmadan galeriden fotoğraf, barkodsuz fotoğrafta ürün uydurmama, anahtarsızken Gemini onayı sorulmaması ve yapay zekâ düğmelerinin "anahtar gerekli" işareti |
 
 Çalıştırma: `node smoke.mjs` (her biri bağımsızdır).
