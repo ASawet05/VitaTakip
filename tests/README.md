@@ -28,6 +28,7 @@ Gerçek Chrome ile (puppeteer-core) uygulamayı açıp kullanıcı gibi dener.
 | `guvenlik-xss.mjs` | Kullanıcı girdisinin kod olarak çalışmaması (XSS) |
 | `ana-sayfa-grafik.mjs` | Ana sayfa karşılama kartı ve tahlil gelişim grafiği |
 | `denetim-duzeltmeleri.mjs` | Denetim düzeltmeleri: yedeğin Android köprüsüyle kaydı, içe aktarma doğrulaması, sahte fotoğraf tanıma yok, uydurma barkod yok, hesap silme (IndexedDB dahil), tahlil aralık kontrolü, eksik profil/eGFR, ALT, çoklu sekme |
+| `web-pwa.mjs` | Web/PWA: servis çalışanı, Chrome yüklenebilirlik denetimi, manifest, 390px telefon ekranında yatay taşma yok, çevrimdışı açılış, Android köprüsü olmadan çalışma. Canlı site için: `node web-pwa.mjs https://asawet05.github.io/VitaTakip/` |
 | `sifre.mjs` | Yerel hesap şifresi: PBKDF2 + kullanıcı başına tuz, Türkçe karakter çakışması yok, eski kayıtların girişte taşınması, hesap silme onayında "sil"/"SİL" |
 | `fotograf-barkod.mjs` | Fotoğraftan barkod okuma (BarcodeDetector yokken ZXing), 0 ile başlayan EAN-13/UPC-A eşleşmesi, kamera izni olmadan galeriden fotoğraf, barkodsuz fotoğrafta ürün uydurmama, anahtarsızken Gemini onayı sorulmaması ve yapay zekâ düğmelerinin "anahtar gerekli" işareti |
 
