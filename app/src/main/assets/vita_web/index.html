@@ -2,8 +2,8 @@
 
 <html lang="tr">
 <head>
-<!-- Gizlilik: sayfa hiçbir dış sunucuya veri gönderemez (fetch/XHR/WebSocket/sendBeacon yalnızca kendi adresine). -->
-<meta http-equiv="Content-Security-Policy" content="connect-src 'self'; form-action 'self'">
+<!-- Gizlilik: sayfa yalnızca kendi adresine ve (kullanıcı anahtar + onay verirse) Google Gemini API'ye bağlanabilir. -->
+<meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://generativelanguage.googleapis.com; form-action 'self'">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -1786,6 +1786,35 @@ Kapalı
 </details>
 </div>
 
+<!-- 5.3. Vita AI ve Gemini Bağlantısı -->
+<div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 space-y-3" id="settingsSectionAiConnection">
+<div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-2.5">
+<div class="flex items-center gap-2.5">
+<i class="fa-solid fa-robot text-teal-600 text-sm"></i>
+<h3 class="text-xs sm:text-sm font-black text-navy-900">Yapay zekâ (isteğe bağlı)</h3>
+</div>
+<span class="text-[10px] px-2.5 py-0.5 rounded-full font-bold bg-slate-100 text-slate-700 border border-slate-200" id="apiStatusBadge">Yerel Asistan</span>
+</div>
+<div class="space-y-2">
+<label class="text-xs font-bold text-slate-700 block" for="drawerGeminiApiKeyInput">Gemini API anahtarı</label>
+<div class="flex flex-col sm:flex-row gap-2">
+<input autocomplete="off" class="flex-1 px-3 py-2 rounded-xl bg-slate-50 border border-slate-300 text-xs text-navy-900 focus:outline-none focus:border-teal-500 font-mono" id="drawerGeminiApiKeyInput" onkeydown="if(event.key==='Enter'){event.preventDefault(); saveGeminiApiKey(this.value);}" placeholder="AIzaSy... anahtarınızı buraya yapıştırın" type="password"/>
+<button class="px-4 py-2 rounded-xl bg-navy-900 hover:bg-slate-800 text-white text-xs font-bold transition cursor-pointer shrink-0 flex items-center justify-center gap-1.5" id="btnSaveGeminiApiKey" onclick="if(window.SoundEffects) SoundEffects.playClick(); saveGeminiApiKey(document.getElementById('drawerGeminiApiKeyInput').value)" type="button">
+<i class="fa-solid fa-plug-circle-check text-teal-400"></i>
+<span>Kaydet</span>
+</button>
+<button class="hidden px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold transition cursor-pointer shrink-0 flex items-center justify-center gap-1" id="btnClearGeminiApiKey" onclick="if(window.SoundEffects) SoundEffects.playClick(); clearGeminiApiKeyFromSettings()" type="button">
+<i class="fa-solid fa-trash-can"></i>
+<span>Anahtarı Kaldır</span>
+</button>
+</div>
+<div aria-live="polite" class="hidden rounded-xl border p-2.5 text-xs font-bold" id="geminiApiSaveFeedbackBox"></div>
+<p class="text-[11px] text-slate-500 leading-relaxed">
+Anahtar girerseniz Vita AI sohbeti ve kutu fotoğrafı tanıma Google Gemini ile çalışır; girmezseniz cihazdaki yerel motor yanıtlar. Anahtar yalnızca <strong>bu tarayıcıda, bu hesaba özel</strong> saklanır ve kaydederken Google ile doğrulanır. Sağlık verileriniz yalnızca sohbetteki paylaşım onayını açtığınızda gönderilir. Ücretsiz anahtar: <a class="font-bold text-teal-700 underline" href="https://aistudio.google.com/apikey" rel="noopener noreferrer" target="_blank">aistudio.google.com/apikey</a>
+</p>
+</div>
+</div>
+
 <!-- 5.4. Kurulum ve Çizelge Araçları -->
 <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-slate-200 space-y-2.5" id="settingsSectionTools">
 <div class="flex items-center gap-2.5 border-b border-slate-100 pb-2.5">
@@ -2087,6 +2116,30 @@ Verileri Sil
 <span class="flex-1" id="ai-typing-text">VitaAI klinik verileri analiz ediyor...</span>
 <button class="hidden px-2.5 py-1 rounded-lg bg-white border border-teal-300 text-teal-800 hover:bg-teal-100 font-black shrink-0" id="ai-use-local-fallback" onclick="VitaAIChat.useLocalFallback()" type="button">Yerel yanıtı kullan</button>
 </div>
+<!-- Haricî yapay zekâ veri paylaşım ayarları: kompakt çekmece; varsayılan olarak kapalıdır. -->
+<div class="shrink-0 border-t border-slate-200 bg-white" id="aiHealthDataConsentDisclosure">
+<div class="flex items-center gap-2 px-2 py-1.5">
+<button aria-controls="aiHealthDataConsentPanel" aria-expanded="false" class="min-w-0 flex-1 flex items-center gap-2 rounded-lg px-2 py-1.5 text-left hover:bg-slate-50 transition cursor-pointer" id="aiHealthDataConsentToggle" onclick="VitaAIChat.toggleConsentPanel()" type="button">
+<i class="fa-solid fa-shield-halved text-teal-700 shrink-0"></i>
+<div class="min-w-0 flex-1">
+<span class="block text-[10px] font-black text-slate-700">Haricî yapay zekâ veri paylaşım ayarları</span>
+<span class="block text-[9px] text-slate-500" id="aiHealthDataConsentStatus">Kapalı · Yerel yanıt motoru kullanılır</span>
+</div>
+<i class="fa-solid fa-chevron-down text-[10px] text-slate-500 transition-transform" id="aiHealthDataConsentChevron"></i>
+</button>
+<button class="hidden shrink-0 rounded-lg border border-teal-200 bg-teal-50 px-2 py-1 text-[9px] font-bold text-teal-800 hover:bg-teal-100" id="aiHealthDataConsentApproved" onclick="VitaAIChat.revokeConsent()" type="button">Onayı kaldır</button>
+</div>
+<div class="hidden px-3 py-2 bg-amber-50 border-t border-amber-200" id="aiHealthDataConsentPanel">
+<label class="flex items-start gap-2 text-[10px] leading-relaxed text-amber-950 cursor-pointer" for="aiHealthDataConsent">
+<input class="mt-0.5 h-4 w-4 rounded border-amber-400 text-teal-600 focus:ring-teal-500 shrink-0" id="aiHealthDataConsent" onchange="VitaAIChat.handleConsentChange(this.checked)" type="checkbox"/>
+<span><strong id="aiConsentProviderLabel">Haricî yapay zekâ veri paylaşım onayı:</strong> Bu oturumdaki sorumun ve soruyla ilişkili, uygulamada kayıtlı sağlık verilerinin (tahlil yorumu isteyen sorularda girdiğiniz tüm tahlil değerleri, referans aralıkları, önceki ölçümler, yaş/cinsiyet, ilaç ve belirti kayıtları dahil) Google Gemini hizmetine yanıt üretimi için gönderilmesini onaylıyorum.</span>
+</label>
+<p class="mt-1 pl-6 text-[9px] text-amber-800">Onay vermezseniz soru yerel VitaTakip motoruyla yanıtlanır. Sağlık verileriniz hassastır; dış servise göndermeden önce metni ve paylaşım kapsamını değerlendirin. Bu uygulama otomatik KVKK uyumluluğu garantisi vermez.</p>
+<div class="mt-2 flex justify-end">
+<button class="rounded-lg border border-amber-300 bg-white px-2.5 py-1 text-[9px] font-bold text-amber-900 hover:bg-amber-100" onclick="VitaAIChat.closeConsentPanel()" type="button">Kapat / Şimdilik yerel kullan</button>
+</div>
+</div>
+</div>
 <!-- Mesaj Giriş Alanı -->
 <div aria-live="polite" class="px-3 py-1 text-[9px] text-slate-500 bg-white border-t border-slate-100" id="ai-voice-status">Sorunuzu yazın; yanıtlar bu cihazda hazırlanır.</div>
 <form class="p-2.5 bg-white border-t border-slate-200 flex items-center gap-1.5 shrink-0" onsubmit="VitaAIChat.handleSubmit(event)">
@@ -2213,7 +2266,7 @@ Verileri Sil
 
 <p class="vta-note" id="authLocalDataNotice">
 <i class="fa-solid fa-lock" aria-hidden="true"></i>
-<span>Verileriniz yalnızca bu cihazda tutulur; hiçbir sunucuya gönderilmez. Şifre bu cihazdaki ekranı kilitler, verileri şifrelemez; ortak cihazda dikkatli olun. <button type="button" onclick="openKvkkInfoModal()">Gizlilik &amp; Yasal Şartlar</button></span>
+<span>Verileriniz yalnızca bu cihazda tutulur; Gemini yapay zekâyı açıkça kullanmadığınız sürece hiçbir yere gönderilmez. Şifre bu cihazdaki ekranı kilitler, verileri şifrelemez; ortak cihazda dikkatli olun. <button type="button" onclick="openKvkkInfoModal()">Gizlilik &amp; Yasal Şartlar</button></span>
 </p>
 </div>
 </div>
@@ -2243,8 +2296,8 @@ Verileri Sil
 </ol>
 <div class="vg-tips">
   <div><i class="fa-solid fa-house text-emerald-700"></i><span><strong>Ana Sayfa:</strong> bugünkü vitaminlerinizi işaretleyin, su ekleyin, barkodla yeni takviye ekleyin. Her gün 00:00'da liste ve su sayacı yenilenir.</span></div>
-  <div><i class="fa-solid fa-robot text-indigo-700"></i><span><strong>Vita AI:</strong> kısa sorular sorun. Yanıtlar cihazdaki yerel motorla üretilir; sorularınız hiçbir yere gönderilmez.</span></div>
-  <div><i class="fa-solid fa-shield-halved text-teal-700"></i><span><strong>Gizlilik:</strong> bulutla giriş verilerinizi yedekler; yerel giriş yalnızca bu cihazda tutar. Uygulama tanı koymaz, karar için hekime danışın.</span></div>
+  <div><i class="fa-solid fa-robot text-indigo-700"></i><span><strong>Vita AI:</strong> kısa sorular sorun. Ayarlar'dan Gemini API anahtarı ekler ve paylaşım onayı verirseniz Gemini, aksi hâlde cihazdaki yerel motor yanıtlar. Anahtarınız yalnızca bu tarayıcıda, kendi hesabınızda saklanır.</span></div>
+  <div><i class="fa-solid fa-shield-halved text-teal-700"></i><span><strong>Gizlilik:</strong> verileriniz yalnızca bu cihazda tutulur; taşımak için Ayarlar &gt; "Yedek İndir"i kullanın. Uygulama tanı koymaz, karar için hekime danışın.</span></div>
 </div>
 <div class="mt-4 flex flex-col-reverse gap-2 border-t border-slate-100 pt-4 sm:flex-row sm:items-center sm:justify-between">
   <button type="button" onclick="if(window.SoundEffects) SoundEffects.playClick(); closeOnboardingModal()" class="min-h-10 rounded-xl bg-slate-100 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-200">Kapat</button>
@@ -2595,7 +2648,7 @@ Verileri Sil
 <div class="vsa-actions">
 <button class="vsa-btn vsa-btn-main" id="btnAddSupStartCamera" onclick="if(window.SoundEffects) SoundEffects.playClick(); startAddSupModalScanner()" type="button"><i class="fa-solid fa-barcode"></i><span>Barkod tara</span></button>
 <button class="vsa-btn vsa-btn-stop hidden" id="btnAddSupStopCamera" onclick="if(window.SoundEffects) SoundEffects.playClick(); stopScanner()" type="button"><i class="fa-solid fa-stop"></i><span>Kamerayı kapat</span></button>
-<button class="vsa-btn" id="btnAddSupAiBoxScan" onclick="if(window.SoundEffects) SoundEffects.playClick(); triggerGeminiBoxScan()" type="button"><i class="fa-solid fa-camera"></i><span>Fotoğraftan barkod oku</span></button>
+<button class="vsa-btn" id="btnAddSupAiBoxScan" onclick="if(window.SoundEffects) SoundEffects.playClick(); triggerGeminiBoxScan()" type="button"><i class="fa-solid fa-camera"></i><span>Fotoğrafla tanı</span></button>
 <input accept="image/*" capture="environment" class="hidden" id="addSupAiPhotoInput" onchange="handleAddSupAiPhotoInput(event)" type="file"/>
 </div>
 <div class="hidden vsa-cam" id="addSupCameraViewportWrapper">
@@ -2608,8 +2661,9 @@ Verileri Sil
 </div>
 <div aria-live="polite" class="hidden vsa-feedback" id="addSupBarcodeFeedbackBox"></div>
 <div aria-live="assertive" class="hidden vsa-fallback" id="addSupFallbackConfirmBox">
-<p><i class="fa-solid fa-circle-question" aria-hidden="true"></i> Barkod bu cihazdaki ürün listesinde yok. Ürün adını yazarak ekleyebilirsiniz.</p>
+<p><i class="fa-solid fa-circle-question" aria-hidden="true"></i> Barkod bu cihazdaki ürün listesinde yok. Kutunun fotoğrafıyla yapay zekâ (Gemini) doldursun mu?</p>
 <div class="vsa-fb-actions">
+<button class="vsa-btn vsa-btn-main" data-vita-requires-gemini="" onclick="if(window.SoundEffects) SoundEffects.playClick(); triggerGeminiBoxScan()" type="button"><i class="fa-solid fa-camera-retro"></i><span>Evet, fotoğraf çek</span></button>
 <button class="vsa-btn" onclick="document.getElementById('addSupFallbackConfirmBox').classList.add('hidden'); document.getElementById('manualSupName')?.focus()" type="button">Tamam, elle yazacağım</button>
 </div>
 </div>
@@ -2821,7 +2875,7 @@ Verileri Sil
 </div>
 <div class="rounded-xl border border-indigo-200 bg-white p-3">
 <button class="min-h-10 w-full rounded-xl border border-indigo-300 bg-indigo-50 px-3 py-2 text-xs font-bold text-indigo-900 hover:bg-indigo-100" onclick="askVitaAIAboutBarcodeSupplement()" type="button"><i class="fa-solid fa-comment-medical mr-1.5"></i> VitaAI'ye etkileşim / kullanım sorusu hazırla</button>
-<p class="mt-1.5 text-[9px] leading-relaxed text-slate-500">Soru sohbet alanına taşınır, otomatik gönderilmez. Yanıtlar cihazdaki yerel motorla üretilir.</p>
+<p class="mt-1.5 text-[9px] leading-relaxed text-slate-500">Soru sohbet alanına taşınır, otomatik gönderilmez. Göndermeden önce metni ve Gemini veri paylaşım onayını kontrol edin.</p>
 </div>
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
 <div><label class="mb-1 block text-[10px] font-bold text-slate-700" for="barcodeScheduleTime">Hatırlatma saati *</label><input class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs focus:border-teal-500 focus:outline-none" id="barcodeScheduleTime" onchange="this.dataset.userEdited='true'" required="" type="time"/><p aria-live="polite" class="mt-1 text-[9px] leading-relaxed text-slate-500" id="barcodeScheduleSuggestionNote">Ürün adı girildiğinde uygun bir hatırlatma saati taslak olarak önerilebilir. Etiket/hekim/eczacı talimatı önceliklidir.</p></div>
@@ -2864,12 +2918,12 @@ Verileri Sil
 </div>
 </section>
 <section class="rounded-2xl border border-slate-200 p-3 sm:p-4 space-y-3">
-<div class="flex flex-wrap items-center justify-between gap-2"><div><h3 class="text-xs font-black text-navy-900"><i class="fa-solid fa-image mr-1.5 text-teal-700"></i>Fotoğraftan Barkod Okuma</h3><p class="mt-1 text-[10px] leading-relaxed text-slate-500">Kamera barkodu okuyamazsa kutudaki barkodun yakından, net ve düz bir fotoğrafını çekin; barkod fotoğraftan bu cihazda okunur.</p></div><span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 shrink-0" id="barcodeAiPhotoPermBadge">Kamera İzni: Kontrol Ediliyor</span></div>
+<div class="flex flex-wrap items-center justify-between gap-2"><div><h3 class="text-xs font-black text-navy-900"><i class="fa-solid fa-image mr-1.5 text-teal-700"></i>Fotoğraftan Barkod Okuma &amp; Yapay Zekâ ile Kutu Tanıma</h3><p class="mt-1 text-[10px] leading-relaxed text-slate-500">Fotoğraf seçilince içindeki barkod bu cihazda okunur. Barkod yoksa veya okunamazsa kutunun ön yüzünü Gemini yapay zekâ ile tanıtabilirsiniz (Ayarlar'da API anahtarı gerekir).</p></div><span class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 shrink-0" id="barcodeAiPhotoPermBadge">Kamera İzni: Kontrol Ediliyor</span></div>
 <button class="flex w-full min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl border border-teal-300 bg-teal-50 px-3 py-2.5 text-xs font-bold text-teal-900 hover:bg-teal-100 transition" id="btnTriggerBarcodePhotoCapture" onclick="if(window.SoundEffects) SoundEffects.playClick(); triggerBarcodeModalPhotoInput()" type="button"><i class="fa-solid fa-camera-retro"></i> Kutu Fotoğrafı Çek / Cihazdan Yükle</button>
 <input accept="image/*" capture="environment" class="sr-only" id="barcodePhotoFile" onchange="handleBarcodePhotoSelected(event)" type="file"/>
 <img alt="Seçilen kutu fotoğrafı önizlemesi" class="hidden mx-auto max-h-64 max-w-full rounded-xl border border-slate-200 object-contain" id="barcodePhotoPreview"/>
-<div class="grid grid-cols-1 gap-2"><button class="min-h-10 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-800 hover:bg-slate-50" onclick="decodeBarcodeFromPhoto()" type="button"><i class="fa-solid fa-barcode mr-1"></i> Fotoğraftaki barkodu tekrar oku</button></div>
-<label class="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-[10px] leading-relaxed text-amber-950"><input checked="" class="mt-0.5 h-4 w-4 shrink-0 rounded border-amber-400 text-teal-600" id="barcodePhotoConsent" type="checkbox"/><span><strong>Fotoğraf yalnızca bu cihazda incelenir:</strong> fotoğraf hiçbir sunucuya gönderilmez.</span></label>
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-2"><button class="min-h-10 rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs font-bold text-slate-800 hover:bg-slate-50" onclick="decodeBarcodeFromPhoto()" type="button"><i class="fa-solid fa-barcode mr-1"></i> Fotoğraftaki barkodu tekrar oku</button><button class="min-h-10 rounded-xl bg-indigo-700 px-3 py-2 text-xs font-black text-white hover:bg-indigo-800" data-vita-requires-gemini="" id="barcodeAnalyzePhotoBtn" onclick="analyzeMedicationPhotoWithAI()" type="button"><i class="fa-solid fa-wand-magic-sparkles mr-1"></i> Yapay Zekâ (Gemini) ile Kutuyu Tanı</button></div>
+<label class="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-[10px] leading-relaxed text-amber-950"><input class="mt-0.5 h-4 w-4 shrink-0 rounded border-amber-400 text-teal-600" id="barcodePhotoConsent" type="checkbox"/><span><strong>Yapay zekâ fotoğraf onayı:</strong> "Yapay Zekâ ile Kutuyu Tanı"yı kullandığımda seçtiğim kutu fotoğrafının ürün adını ve içeriğini tespit etmek için Google Gemini'ye gönderilmesini onaylıyorum. Barkod okuma için fotoğraf gönderilmez. Fotoğrafa kişisel bilgi eklemeyin.</span></label>
 <div aria-live="polite" class="hidden rounded-2xl border border-indigo-200 bg-indigo-50 p-3 text-xs text-indigo-950" id="barcodeAiResult"><div class="font-black"><i class="fa-solid fa-robot mr-1"></i> Yapay Zeka Kutu &amp; İçerik Tanıma Sonucu</div><pre class="mt-2 whitespace-pre-wrap break-words font-sans text-xs leading-relaxed" id="barcodeAiResultText"></pre><p class="mt-2 border-t border-indigo-200 pt-2 text-[10px] leading-relaxed">Bu sonuç görselde okunabilen yazıların analizidir; etken madde, doz ve ürün kimliğini kutu/prospektüs veya eczacıyla doğrulayın.</p></div>
 </section>
 <div class="rounded-xl border border-amber-300 bg-amber-50 p-3 text-[10px] leading-relaxed text-amber-950"><strong><i class="fa-solid fa-triangle-exclamation mr-1"></i> Önemli:</strong> Barkod önce <strong>Türkiye EAN-13 (869) Takviye &amp; İlaç Veritabanı</strong>, yalnızca bu cihazdaki ürün listesinde aranır (internete sorgu gönderilmez); listede yoksa ürün adını elle yazabilirsiniz. <em>Takviye Ekle</em> modunda yalnızca vitamin ve gıda takviyeleri, <em>İlaç Seç ve Denetle</em> modunda ise genel/reçeteli ilaçlar eşleştirilir.</div>
@@ -2895,10 +2949,10 @@ Verileri Sil
 <li><strong>Kapsam ve veri sorumlusu.</strong> Bu metin, VitaTakip'te işlenen kişisel verilere ilişkin 6698 sayılı KVKK kapsamındaki aydınlatma özetidir. Uygulama eğitim ve klinik karar desteği amacıyla sunulur.</li>
 <li><strong>İşlenen veriler.</strong> Profil bilgileriniz (yaş, cinsiyet, boy, kilo), tahlil sonuçları ve referans aralıkları, seçtiğiniz belirtiler, kullandığınız ilaç ve takviyeler, günlük takip kayıtları ve yüklediğiniz PDF/fotoğraf içerikleri; bunlar sağlık verisi olup özel nitelikli kişisel veridir.</li>
 <li><strong>İşleme amaçları.</strong> Verileriniz yalnızca tahlil ve belirti analizi, takviye ve ilaç etkileşimi kontrolü, hatırlatmalar ve doktorunuzla paylaşabileceğiniz özetlerin üretilmesi için kullanılır. Reklam veya profilleme amacıyla kullanılmaz.</li>
-<li><strong>Saklama yeri.</strong> Kayıtlarınız yalnızca bu cihazın tarayıcı/uygulama hafızasında (localStorage ve IndexedDB) tutulur. Uygulamanın sunucusu yoktur; verileriniz hiçbir sunucuya gönderilmez veya yedeklenmez.</li>
-<li><strong>Üçüncü taraflarla paylaşım.</strong> Hiçbir üçüncü tarafla veri paylaşılmaz. Yapay zekâ sohbeti ve ürün tanıma cihazınızdaki yerel motorla çalışır. Geri bildirim yazarsanız mesajınız cihazınıza kaydedilir; göndermek isterseniz kendi e-posta uygulamanız hazır mesajla açılır ve gönderim kararı size aittir.</li>
-<li><strong>Yurt dışına aktarım.</strong> Uygulama verilerinizi cihazınızdan dışarı aktarmaz. Verilerinizi başka bir cihaza taşımak için Ayarlar'daki "Yedek İndir" ile oluşturduğunuz dosyayı kendiniz aktarırsınız.</li>
-<li><strong>Güvenlik ve sınırlar.</strong> Tarayıcı yerel depolaması şifrelenmemiştir; cihazı ortak kullanıyorsanız gerçek sağlık verisi girmeyin. Tarayıcı verilerini temizlerseniz kayıtlarınız silinir; düzenli olarak yedek dosyası almanız önerilir. Bu uygulama otomatik KVKK uyumluluğu garantisi vermez.</li>
+<li><strong>Saklama yeri.</strong> Kayıtlarınız yalnızca bu cihazın tarayıcı/uygulama hafızasında (localStorage ve IndexedDB) tutulur. Uygulamanın kendi sunucusu yoktur; verileriniz bir sunucuda saklanmaz veya yedeklenmez. Gemini API anahtarınız da yalnızca bu tarayıcıda, hesabınıza özel saklanır.</li>
+<li><strong>Üçüncü taraflarla paylaşım.</strong> Reklam, pazarlama veya profilleme amacıyla hiçbir üçüncü tarafla veri paylaşılmaz. Ayarlar'da Google Gemini API anahtarı eklerseniz: Vita AI sohbetinde yalnızca paylaşım onayını açtığınızda o soru ve soruyla ilgili sağlık bağlamı; "Yapay Zekâ ile Kutuyu Tanı"yı kullandığınızda yalnızca onayladığınız kutu fotoğrafı yanıt üretimi için Google'a gönderilir. Anahtar yoksa veya onay kapalıysa yanıtlar cihazınızdaki yerel motorla üretilir ve hiçbir şey gönderilmez. Geri bildirim yazarsanız mesajınız cihazınıza kaydedilir; göndermek isterseniz kendi e-posta uygulamanız hazır mesajla açılır ve gönderim kararı size aittir.</li>
+<li><strong>Yurt dışına aktarım.</strong> Google Gemini kullanımı, gönderilen soru veya fotoğrafın yurt dışındaki sunucularda işlenmesi anlamına gelir; bu tamamen isteğe bağlıdır. Gemini kullanmadığınız sürece verileriniz cihazınızdan çıkmaz. Verilerinizi başka bir cihaza taşımak için Ayarlar'daki "Yedek İndir" ile oluşturduğunuz dosyayı kendiniz aktarırsınız.</li>
+<li><strong>Güvenlik ve sınırlar.</strong> Tarayıcı yerel depolaması şifrelenmemiştir; cihazı ortak kullanıyorsanız gerçek sağlık verisi girmeyin. API anahtarı tarayıcıda saklandığından bu cihaza erişen biri tarafından görülebilir; anahtarınızı Google AI Studio'dan dilediğiniz zaman iptal edebilirsiniz. Tarayıcı verilerini temizlerseniz kayıtlarınız silinir; düzenli olarak yedek dosyası almanız önerilir. Bu uygulama otomatik KVKK uyumluluğu garantisi vermez.</li>
 <li><strong>Haklarınız.</strong> KVKK madde 11 uyarınca verilerinize erişme, düzeltme, silme ve işlenmesine itiraz etme hakkınız vardır. Yerel verilerinizi tarayıcı verilerini temizleyerek veya uygulamadaki yedekleme/silme araçlarıyla kendiniz silebilirsiniz.</li>
 <li><strong>Tıbbi sorumluluk ve değişiklikler.</strong> VitaTakip tanı koymaz, tedavi başlatmaz ve reçete düzenlemez; nihai karar hekiminize aittir. Acil durumlarda 112'yi arayın. Bu metin güncellenebilir ve hukuki danışmanlık niteliği taşımaz.</li>
 </ol>

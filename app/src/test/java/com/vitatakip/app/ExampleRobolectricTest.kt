@@ -34,13 +34,13 @@ class ExampleRobolectricTest {
         assertTrue(indexHtml.contains("VitaTakip"))
         assertTrue(indexHtml.contains("id=\"authTabLoginBtn\""))
         assertTrue(indexHtml.contains("id=\"authTabRegisterBtn\""))
-        // Yalnızca yerel depolama: bulut/Google girişi ve dış bağlantı yok
+        // Yalnızca yerel depolama: bulut/Google girişi yok; tek dış bağlantı isteğe bağlı Gemini API
         assertTrue(!indexHtml.contains("Firebase"))
         assertTrue(!indexHtml.contains("id=\"btnFirebaseGoogleLogin\""))
         assertTrue(!indexHtml.contains("id=\"headerCloudSyncBtn\""))
         assertTrue(!indexHtml.contains("id=\"cloudSyncModal\""))
         assertTrue(!indexHtml.contains("cloud-sync.js"))
-        assertTrue(indexHtml.contains("connect-src 'self'"))
+        assertTrue(indexHtml.contains("content=\"connect-src 'self' https://generativelanguage.googleapis.com; form-action 'self'\""))
         assertTrue(!indexHtml.contains("id=\"homeCompactDosageNotifRow\""))
         assertTrue(!indexHtml.contains("id=\"btnQuickPwaNotifTrigger\""))
         assertTrue(!indexHtml.contains("id=\"headerVitaSkor\""))
@@ -130,7 +130,6 @@ class ExampleRobolectricTest {
 
         val viewHomeIdx = indexHtml.indexOf("id=\"view-home\"")
         val greetingIdx = indexHtml.indexOf("id=\"homeGreetingTime\"")
-        val reminderIdx = indexHtml.indexOf("openClinicalReminder()")
         val hydrationIdx = indexHtml.indexOf("id=\"homeHydrationText\"")
         val summaryDrawerIdx = indexHtml.indexOf("id=\"homeDailySummaryDetails\"")
         val supplementsIdx = indexHtml.indexOf("id=\"supplementChecklistContainer\"")
@@ -138,8 +137,8 @@ class ExampleRobolectricTest {
         val pwaNotifDrawerIdx = indexHtml.indexOf("id=\"pwaNotificationSmartListDrawer\"")
 
         assertTrue("Greeting must be at the top of view-home", greetingIdx > viewHomeIdx)
-        assertTrue("Clinical reminder must follow greeting", reminderIdx > greetingIdx)
-        assertTrue("Daily hydration target must follow clinical reminder", hydrationIdx > reminderIdx)
+        // Klinik hatırlatma düğmesi ana sayfadan kaldırıldı; su hedefi doğrudan karşılamadan sonra gelir.
+        assertTrue("Daily hydration target must follow greeting", hydrationIdx > greetingIdx)
         assertTrue("Daily summary indicators drawer must follow hydration", summaryDrawerIdx > hydrationIdx)
         assertTrue("Supplements & Pharmaceutical Forms must follow summary drawer", supplementsIdx > summaryDrawerIdx)
         assertTrue("Drug-Nutrient Shield drawer must follow supplements", medShieldDrawerIdx > supplementsIdx)
@@ -271,7 +270,8 @@ class ExampleRobolectricTest {
 
         // Verify Task 2: NeyimVar [Anamnez Triyaj ve eGFR Analiz] button, inline inputs, and inline result container
         assertTrue(indexHtml.contains("id=\"btnRunCDSS\""))
-        assertTrue(indexHtml.contains("Anamnez Triyaj ve eGFR Analiz"))
+        // Düğme etiketi sadeleştirildi: "Sonuçları Gör"
+        assertTrue(indexHtml.contains("<span>Sonuçları Gör</span>"))
         assertTrue(indexHtml.contains("id=\"neyimInputAge\""))
         assertTrue(indexHtml.contains("id=\"neyimInputGender\""))
         assertTrue(indexHtml.contains("id=\"neyimInputCreatinine\""))

@@ -1,7 +1,7 @@
 /* Gerçek EAN-13 görseli üretip fotoğraf olarak yükler; fotoğraftan barkod okuma akışlarını doğrular. */
 import { boot, sleep } from './lib.mjs';
 const { b, p, errs } = await boot({ preload: () => { delete window.BarcodeDetector; } }); // masaüstü/iOS gibi BarcodeDetector olmayan ortam
-p.on('dialog', d => d.dismiss());
+let dialogs = 0; p.on('dialog', d => { dialogs++; d.dismiss(); });
 await p.evaluate(() => { try { closeProfileModal(); } catch (e) {} document.getElementById('vitaSpotlightLayer')?.classList.add('hidden'); localStorage.setItem('vitatakip_camera_app_approved', 'true'); });
 
 const makeFile = (code) => p.evaluate(async code => {
@@ -49,9 +49,11 @@ await feed('addSupAiPhotoInput'); await sleep(3500);
 const r3 = await p.evaluate(() => ({ fb: (document.getElementById('addSupBarcodeFeedbackBox')?.innerText || '').replace(/\s+/g, ' ').slice(0, 200), name: document.getElementById('manualSupName')?.value || '' }));
 log('Barkodsuz fotoğrafta ürün uydurulmaz, açık mesaj verilir', /barkod bulunamadı/i.test(r3.fb) && !r3.name, JSON.stringify(r3));
 
-/* 4) Görünür arayüzde çalışmayan "Yapay Zeka ile tanı" düğmesi kalmadı */
-const r4 = await p.evaluate(() => [...document.querySelectorAll('button')].filter(b => /yapay zek|AI ile/i.test(b.innerText) || /analyzeMedicationPhotoWithAI|triggerGeminiBoxScan\(\)"?$/.test(b.getAttribute('onclick') || '') && /tanı/i.test(b.innerText)).map(b => b.innerText.trim().slice(0, 40)));
-log('Arayüzde "Yapay Zeka ile tanı" düğmesi yok', r4.length === 0, JSON.stringify(r4));
+log('Anahtar yokken fotoğraf için Gemini onayı sorulmaz (hiçbir şey gönderilmez)', dialogs === 0, String(dialogs));
+
+/* 4) Gemini anahtarı yokken yapay zekâ düğmeleri soluk ve nedenini açıklar; barkod okuma anahtarsız çalışır */
+const r4 = await p.evaluate(() => { updateApiKeyUI(); return [...document.querySelectorAll('[data-vita-requires-gemini]')].map(b => ({ dim: b.classList.contains('opacity-60'), title: b.title })); });
+log('Anahtar yokken yapay zekâ düğmeleri "anahtar gerekli" olarak işaretli', r4.length >= 2 && r4.every(x => x.dim && /API anahtarı/.test(x.title)), String(r4.length));
 log('Sayfa hatası yok', errs.length === 0, errs.join(' | '));
 console.log('ÖZET', results.filter(Boolean).length + '/' + results.length);
 await b.close(); process.exit(0);

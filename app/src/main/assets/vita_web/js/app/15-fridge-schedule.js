@@ -259,8 +259,8 @@ function renderFridgeScheduleSheet() {
       run() {
         const results = [];
         const check = (name, ok, detail = "") => results.push({ name, passed: Boolean(ok), detail });
-        check("Yapay zekâ yalnızca yerel motorla çalışır", VitaAIChat.getModelConfig().primary === "local" && getAIProvider() === "local", `Ana model: ${VitaAIChat.getModelConfig().primary}`);
-        check("AI sohbet kodunda dış ağ isteği yok", !/fetch\(|XMLHttpRequest|generativelanguage/.test(VitaAIChat.callGeminiAPI.toString() + VitaAIChat.analyzeMedicationImage.toString() + window.callGeminiWithFallback.toString()));
+        check("Gemini modeli tanımlı (otomatik model bulma ile)", Boolean(VitaAIChat.getModelConfig().primary) && typeof window.vitaGeminiGenerate === "function", `Ana model: ${VitaAIChat.getModelConfig().primary}`);
+        check("Gemini anahtarı adres satırında değil başlıkta gönderilir", typeof vitaGeminiHeaders === "function" && /x-goog-api-key/.test(String(vitaGeminiHeaders)) && /vitaGeminiHeaders\(apiKey\)/.test(String(window.vitaGeminiGenerate)) && !/[?&]key=/.test(String(window.vitaGeminiGenerate) + String(listVitaGeminiModels) + String(validateGeminiApiKey) + String(VitaAIChat.callGeminiAPI)));
         check("Bilimsel belirti rehberi veri kümesi ve kaynakları mevcut", Boolean(window.VitaEvidenceGuideDiagnostics) && window.VitaEvidenceGuideDiagnostics.getSymptoms().length >= 10 && window.VitaEvidenceGuideDiagnostics.getSourceCount() >= 8);
         const anamnesisRoot = document.getElementById("view-neyim");
         const integratedSymptomKeys = ["night_blindness", "dry_eyes", "burning_tongue", "bleeding_gums", "bone_pain", "angular_cheilitis", "white_nail_spots", "balance_difficulty", "unexplained_swelling", "sun_sensitive_rash", "hair_loss", "dark_nail_change"];
@@ -270,7 +270,7 @@ function renderFridgeScheduleSheet() {
         check("NeyimVar yedi mobil adımda bölünmüş ve analiz son adıma kilitli", anamnesisSteps.every(id => Boolean(document.getElementById(`anamnesis-panel-${id}`))) && stepCards.every(count => count > 0 && count <= 6) && document.getElementById("anamnesisCategoryProgress")?.getAttribute("aria-valuemax") === "7" && typeof window.vitaAnamnesisStep === "function");
         check("Virgüllü laboratuvar sayısı doğru ayrıştırılıyor", parseVitaLabDecimal("75,5") === 75.5 && parseVitaLabDecimal("75.5") === 75.5);
         check("Geçersiz laboratuvar girdisi sayı olarak kabul edilmiyor", parseVitaLabDecimal("12ab") === null && parseVitaLabDecimal("") === null);
-        check("Dış AI veri paylaşım onayı/anahtar alanı yok", !document.getElementById("aiHealthDataConsentApproved") && !document.getElementById("drawerGeminiApiKeyInput"));
+        check("Gemini onayı ve anahtar alanı mevcut", Boolean(document.getElementById("aiHealthDataConsentApproved")) && Boolean(document.getElementById("drawerGeminiApiKeyInput")) && typeof VitaAIChat.initializeConsent === "function");
         check("Yanıt beklerken yerel motora geçiş mevcut", Boolean(document.getElementById("ai-use-local-fallback")) && typeof VitaAIChat.useLocalFallback === "function");
         check("Geri bildirim modalı tekil", document.querySelectorAll("#feedbackModal").length === 1);
         check("Geri bildirim formu mevcut", Boolean(document.getElementById("vitaFeedbackForm")));
@@ -318,7 +318,7 @@ function renderFridgeScheduleSheet() {
         check("Sesli giriş kapalı (konuşma tanıma sesi dış sunucuya gönderebilir), yazılı giriş mevcut", /const Recognition = null/.test(VitaAIChat.toggleVoiceInput.toString()) && /input\.focus\(\)/.test(VitaAIChat.toggleVoiceInput.toString()));
         check("Gerçek kamera barkod okuma işlevi mevcut", typeof startBarcodeCameraScan === "function" && typeof stopBarcodeCameraScan === "function" && typeof handleBarcodeDetected === "function");
         check("Fotoğraftan barkod okuma işlevi mevcut", typeof decodeBarcodeFromPhoto === "function" && Boolean(document.getElementById("barcodePhotoFile")));
-        check("Fotoğraf tanıma yerel; görüntü analizi işlevi dışarı istek atmaz", typeof VitaAIChat.analyzeMedicationImage === "function" && Boolean(document.getElementById("barcodePhotoConsent")));
+        check("Gemini görüntü analizi için fotoğraf onayı mevcut", typeof VitaAIChat.analyzeMedicationImage === "function" && Boolean(document.getElementById("barcodePhotoConsent")));
         check("Yerel depolama sarmalayıcıları var", typeof safeLocalStorageSetItem === "function" && typeof safeLocalStorageGetItem === "function" && typeof safeLocalStorageRemoveItem === "function");
         const sessionStorageTestKey = "vitatakip_session_storage_diagnostic";
         const sessionStorageWorks = safeSessionStorageSetItem(sessionStorageTestKey, "ok") && safeSessionStorageGetItem(sessionStorageTestKey) === "ok";
@@ -326,7 +326,7 @@ function renderFridgeScheduleSheet() {
         check("Oturum bilgisi yalnızca sekme süresince saklanır", sessionStorageWorks && safeLocalStorageGetItem("vitatakip_active_session_id") === null);
         check("FHIR Condition etkin/çözümlenmiş durumunu ve başlangıç bilgisi notunu koruyor", /clinicalStatus:/.test(buildVitaFHIRBundle.toString()) && /Başlangıç zamanı kullanıcı tarafından kaydedilmedi/.test(buildVitaFHIRBundle.toString()));
         check("Batch check-in işlevi mevcut", typeof markTimingTaken === "function" && /markTimingTaken/.test(renderDailyTab.toString()));
-        check("KVKK açıklaması verilerin cihazdan çıkmadığını açıklar", /hiçbir sunucuya gönderilmez/.test(document.getElementById("kvkkInfoModal")?.innerText || ""));
+        check("KVKK açıklaması Gemini veri aktarımını açıklar", /Google Gemini/.test(document.getElementById("kvkkInfoModal")?.innerText || ""));
         check("Özgüllük ağırlıkları tanımlı", Object.values(ANAMNESIS_DICTIONARY).every(item => [1,2,3].includes(item.specificityWeight)));
         [
           [90, "G1"], [60, "G2"], [59, "G3a"], [45, "G3a"],

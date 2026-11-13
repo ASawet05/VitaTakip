@@ -1,7 +1,7 @@
 window.VitaAIChat = VitaAIChat;
-    VitaAIChat.setRuntimeStatus("LOCAL");
+    VitaAIChat.setRuntimeStatus(getGeminiApiKey() ? "UNVERIFIED" : "CONFIGURATION_REQUIRED");
     window.addEventListener("offline", () => VitaAIChat.setRuntimeStatus("OFFLINE"));
-    window.addEventListener("online", () => VitaAIChat.setRuntimeStatus("LOCAL"));
+    window.addEventListener("online", () => VitaAIChat.setRuntimeStatus(getGeminiApiKey() ? "UNVERIFIED" : "CONFIGURATION_REQUIRED"));
     document.addEventListener("keydown", event => {
       if (event.key === "Escape" && !document.getElementById("doctorQuestionsModal")?.classList.contains("hidden")) {
         VitaAIChat.closeDoctorQuestions();
@@ -1465,7 +1465,7 @@ window.VitaAIChat = VitaAIChat;
 
       if (!norm) {
         setBarcodeLookupStatus(
-          `<div class="space-y-2"><strong class="block text-amber-950">Ürün bu cihazdaki listede bulunamadı.</strong><p class="text-[11px] text-amber-900">Ürün adını elle yazarak ekleyebilirsiniz.</p></div>`,
+          `<div class="space-y-2"><strong class="block text-amber-950">Ürün bu cihazdaki listede bulunamadı.</strong><p class="text-[11px] text-amber-900">Ürün adını elle yazarak ekleyebilirsiniz${typeof getGeminiApiKey === "function" && getGeminiApiKey() ? " ya da kutunun fotoğrafını yapay zekâ ile tanıtabilirsiniz" : ""}.</p>${typeof getGeminiApiKey === "function" && getGeminiApiKey() ? `<button type="button" onclick="triggerAiPhotoBoxFallback()" class="rounded-xl bg-indigo-700 hover:bg-indigo-800 px-3.5 py-2 text-xs font-black text-white inline-flex items-center gap-1.5 cursor-pointer"><i class="fa-solid fa-camera"></i><span>Kutu fotoğrafını yapay zekâ ile tanı</span></button>` : ""}</div>`,
           "warning"
         );
         return null;
@@ -1605,7 +1605,8 @@ window.VitaAIChat = VitaAIChat;
       const jsonSlice = (firstBrace !== -1 && lastBrace > firstBrace)
         ? cleaned.slice(firstBrace, lastBrace + 1)
         : cleaned;
-      const parsed = JSON.parse(jsonSlice);
+      let parsed = {};
+      try { parsed = JSON.parse(jsonSlice) || {}; } catch (_) { parsed = {}; /* yapay zekâ yanıtı JSON değil → tanınamadı */ }
       return {
         urunAdi: String(parsed.urunAdi || "").trim(),
         etkenMadde: String(parsed.etkenMadde || "").trim(),
@@ -1664,17 +1665,17 @@ window.VitaAIChat = VitaAIChat;
         showToast("Fotoğraf seçilmedi", "Önce kutunun fotoğrafını çekin veya cihazdan seçin.", "warning");
         return;
       }
-      const consent = document.getElementById("barcodePhotoConsent");
-      if (consent && !consent.checked) {
-        consent.checked = true;
+      const storedGeminiKey = String(typeof getGeminiApiKey === "function" ? getGeminiApiKey() : "").trim();
+      if (!storedGeminiKey) {
+        showToast("Gemini API anahtarı gerekli", "Kutuyu yapay zekâ ile tanımak için Ayarlar > Yapay zekâ bölümüne anahtar ekleyin. Barkodlu ürünlerde 'Fotoğraftaki barkodu tekrar oku' anahtarsız çalışır.", "warning");
+        return;
       }
+      /* Onay kutusu kendiliğinden işaretlenmez: işaretli değilse fotoğraf gönderilmeden önce açıkça sorulur. */
 
       const button = document.getElementById("barcodeAnalyzePhotoBtn");
       const resultBox = document.getElementById("barcodeAiResult");
       const resultText = document.getElementById("barcodeAiResultText");
       const original = button ? button.innerHTML : "";
-
-      const storedGeminiKey = String(typeof getGeminiApiKey === "function" ? getGeminiApiKey() : "").trim();
 
       try {
         if (button) {
@@ -1706,11 +1707,11 @@ window.VitaAIChat = VitaAIChat;
           boxJson.kutuAdedi = localMatchFromFilename.kutuAdedi || boxJson.kutuAdedi;
         }
 
-        /* Cihazda görüntüden yazı okuma (yapay zekâ) yoktur; yalnızca dosya adı yerel listeyle eşleşirse doldurulur. */
+        /* Tanınamayan üründe hiçbir şey uydurulmaz. */
         if (!boxJson.urunAdi) {
-          throw new Error("Ürün fotoğraftan tanınamadı. Bu sürümde fotoğraftan yazı okuma yok ve fotoğraf hiçbir yere gönderilmez. Barkodu okutun veya ürün adını elle yazın.");
+          if (boxJson.usedLocalFallback) throw new Error("Ürün fotoğraftan tanınamadı. Fotoğraf gönderimini onaylamadıysanız hiçbir şey gönderilmedi; aksi hâlde Gemini'ye ulaşılamadı. Barkodu okutun veya ürün adını yazın.");
+          throw new Error("Gemini kutudaki ürünü okuyamadı. Kutunun ön yüzünü yakından ve net çekin veya ürün adını yazın.");
         }
-
         const prettyJson = JSON.stringify({
           urunAdi: boxJson.urunAdi,
           etkenMadde: boxJson.etkenMadde,
@@ -1721,7 +1722,7 @@ window.VitaAIChat = VitaAIChat;
 
         const engineBadge = boxJson.usedLocalFallback
           ? "Yerel ürün listesi eşleşmesi (dosya adına göre)"
-          : "Yerel ürün listesi eşleşmesi";
+          : `Gemini yapay zekâ (${boxJson.modelUsed || "flash"})`;
 
         if (resultText) {
           resultText.textContent =
@@ -1750,7 +1751,7 @@ window.VitaAIChat = VitaAIChat;
         };
 
         applyBarcodeCatalogueMatch(productRecord, "AI-VISION");
-        showToast("Yerel listede eşleşme bulundu", `${productRecord.name} bilgileri forma dolduruldu. Kutudaki bilgilerle karşılaştırıp doğrulayın.`, "success");
+        showToast("Ürün tanındı", `${productRecord.name} bilgileri forma dolduruldu (${engineBadge}). Kutudaki bilgilerle karşılaştırıp doğrulayın.`, "success");
       } catch (error) {
         if (resultText) {
           resultText.textContent = `Görsel analizi tamamlanamadı: ${error?.message || "Bilinmeyen hata"}\n\nYukarıdaki Türkiye EAN-13 listesinden ürün seçebilir veya barkod numarasını elle girebilirsiniz.`;

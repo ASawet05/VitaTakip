@@ -865,19 +865,23 @@ function renderDailyTab() {
 
         let parsedJson = null;
         let usedLocalEngine = false;
+        let aiInfo = {};
 
         if (typeof window.callGeminiWithFallback === "function") {
+          if (typeof getGeminiApiKey === "function" && getGeminiApiKey()) showAddSupFeedback("⏳ Barkod bulunamadı; kutu fotoğrafı Gemini yapay zekâ ile tanınıyor...", "info");
           const aiResp = await window.callGeminiWithFallback(promptText, base64Data, mimeType, {
             expectBoxJson: true,
             fileName: file.name || "",
             mode: "supplement",
             showFallbackToast: true
           });
+          aiInfo = aiResp || {};
           usedLocalEngine = Boolean(aiResp.usedLocalFallback);
           const cleaned = String(aiResp.text || "").replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/i, "").trim();
           const firstBrace = cleaned.indexOf("{");
           const lastBrace = cleaned.lastIndexOf("}");
-          parsedJson = JSON.parse(firstBrace >= 0 && lastBrace > firstBrace ? cleaned.slice(firstBrace, lastBrace + 1) : cleaned);
+          try { parsedJson = JSON.parse(firstBrace >= 0 && lastBrace > firstBrace ? cleaned.slice(firstBrace, lastBrace + 1) : cleaned); }
+          catch (_) { parsedJson = null; /* yapay zekâ yanıtı okunamadı → "tanınamadı" mesajı */ }
         } else if (typeof window.LocalClinicalFallbackEngine === "function") {
           usedLocalEngine = true;
           parsedJson = JSON.parse(window.LocalClinicalFallbackEngine(promptText, base64Data, {
@@ -887,9 +891,13 @@ function renderDailyTab() {
           }));
         }
 
-        /* Cihazda fotoğraftan yazı okuma yoktur: eşleşme yoksa ürün uydurulmaz. */
+        /* Tanınamayan üründe hiçbir şey uydurulmaz; kullanıcıya nedeni açıkça söylenir. */
         if (!parsedJson || !parsedJson.urunAdi) {
-          throw new Error("Fotoğrafta okunabilir bir barkod bulunamadı. Barkodu yakından, net ve düz çekin ya da ürün adını yazın.");
+          throw new Error(aiInfo.consentDeclined
+            ? "Fotoğraf gönderimi onaylanmadı; fotoğraf hiçbir yere gönderilmedi. Ürün adını yazarak ekleyebilirsiniz."
+            : aiInfo.noApiKey
+              ? "Fotoğrafta barkod bulunamadı. Ürünü fotoğraftan tanımak için Ayarlar > Yapay zekâ bölümüne Gemini API anahtarı ekleyin ya da ürün adını yazın."
+              : "Fotoğraftaki ürün tanınamadı. Kutunun ön yüzünü yakından ve net çekin ya da ürün adını yazın.");
         }
 
         fillAddSupplementModalFormFromItem({
@@ -905,10 +913,10 @@ function renderDailyTab() {
         });
 
         const recognizedTitle = parsedJson.urunAdi || "Kutu Bilgileri";
-        const engineLabel = "Yerel ürün listesi eşleşmesi";
-        showAddSupFeedback(`${engineLabel}: ${recognizedTitle} form alanlarına aktarıldı. Kutudaki bilgilerle karşılaştırıp doğrulayın.`, "success");
+        const engineLabel = usedLocalEngine ? "Yerel ürün listesi eşleşmesi" : "Gemini yapay zekâ";
+        showAddSupFeedback(`✨ ${engineLabel}: ${recognizedTitle} form alanlarına aktarıldı. Kutudaki bilgilerle karşılaştırıp doğrulayın.`, "success");
         if (window.SoundEffects) SoundEffects.playSuccess();
-        showToast(`Eşleşme bulundu: ${recognizedTitle}`, "Bilgileri kutudaki etiketle karşılaştırıp doğrulayın.", "success");
+        showToast(`Ürün tanındı: ${recognizedTitle}`, `${engineLabel} ile dolduruldu; kutudaki etiketle karşılaştırıp doğrulayın.`, "success");
       } catch (err) {
         showAddSupFeedback(`Kutu görseli işlenirken uyarı: ${err?.message || "Lütfen yukarıdaki 30 popüler takviye listesinden seçin veya ürün adını girin."}`, "warning");
       }

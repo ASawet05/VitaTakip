@@ -22,12 +22,12 @@ Gerçek Chrome ile (puppeteer-core) uygulamayı açıp kullanıcı gibi dener.
 | `neyimvar-son-adim.mjs` | "Sonuçları Gör" düğmesi yalnızca son adımda görünür |
 | `yas-evresi.mjs` | Yaş/cinsiyete göre RDA tablosu, yaş notları, Klinik Analiz/Ayarlar/Rapor entegrasyonu |
 | `belirti-kontrol.mjs` | Günlük "belirti hâlâ var mı" kartı |
-| `gun-ai-anahtar.mjs` | API anahtarı kabul edilmez / eski anahtarlar silinir, gece sıfırlama, kompakt yerel yanıt |
+| `gun-ai-anahtar.mjs` | İsteğe bağlı Gemini (sahte sunucuyla, Google'a gitmeden): anahtarsızken istek yok, geçersiz anahtar reddedilir, anahtar başlıkta gider, onaysız sağlık verisi gönderilmez, hata/kotada yerel motora geçiş, kaldırılmış modelde otomatik model bulma, kutu fotoğrafı onaylı tanıma; gece sıfırlama, kompakt yerel yanıt |
 | `rapor.mjs` | Kısa doktor özeti |
 | `klinik-mantik.mjs` | Takviye adayı güvenlik değişmezleri (yüksek değerde aday yok, böbrek/hiperkalsemi kilidi, gebelik/çocuk, eGFR) |
 | `guvenlik-xss.mjs` | Kullanıcı girdisinin kod olarak çalışmaması (XSS) |
 | `ana-sayfa-grafik.mjs` | Ana sayfa karşılama kartı ve tahlil gelişim grafiği |
 | `denetim-duzeltmeleri.mjs` | Denetim düzeltmeleri: yedeğin Android köprüsüyle kaydı, içe aktarma doğrulaması, sahte fotoğraf tanıma yok, uydurma barkod yok, hesap silme (IndexedDB dahil), tahlil aralık kontrolü, eksik profil/eGFR, ALT, çoklu sekme |
-| `fotograf-barkod.mjs` | Fotoğraftan barkod okuma (BarcodeDetector yokken ZXing), 0 ile başlayan EAN-13/UPC-A eşleşmesi, kamera izni olmadan galeriden fotoğraf, barkodsuz fotoğrafta ürün uydurmama |
+| `fotograf-barkod.mjs` | Fotoğraftan barkod okuma (BarcodeDetector yokken ZXing), 0 ile başlayan EAN-13/UPC-A eşleşmesi, kamera izni olmadan galeriden fotoğraf, barkodsuz fotoğrafta ürün uydurmama, anahtarsızken Gemini onayı sorulmaması ve yapay zekâ düğmelerinin "anahtar gerekli" işareti |
 
 Çalıştırma: `node smoke.mjs` (her biri bağımsızdır).
