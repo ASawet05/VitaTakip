@@ -1,6 +1,6 @@
 /* VitaTakip servis çalışanı: çevrimdışı açılış için uygulama dosyalarını önbelleğe alır.
    Dosyalarda değişiklik yaptığınızda CACHE_VERSION değerini artırın ki kullanıcılar yeni sürümü alsın. */
-const CACHE_VERSION = 'vitatakip-v87';
+const CACHE_VERSION = 'vitatakip-v88';
 const CORE_FILES = [
   "./",
   "index.html",

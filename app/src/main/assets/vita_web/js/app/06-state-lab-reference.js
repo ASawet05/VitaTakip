@@ -641,16 +641,12 @@ let currentAuthMode = "login";
     }
 
     function purgeLegacyDemoAccounts() {
-      // Clean old presentation/test/guest accounts left in this browser by prior builds.
-      // Normal user accounts without an explicit demo/test/guest marker are not touched.
+      // Yalnızca eski sürümlerin oluşturduğu sabit kimlikli misafir hesabı temizlenir.
+      // ADA BAKILMAZ: "Ayşe Örnek", "Deneme" gibi gerçek ad/soyadlı hesaplar ve verileri asla silinmez.
       let users = [];
       try { users = getUsersDb(); } catch (_) { return 0; }
       if (!Array.isArray(users) || !users.length) return 0;
-      const marker = /(^|[\s_-])(demo|deneme|sample|örnek|test|misafir|guest)(?=$|[\s_-])/i;
-      const removed = users.filter(u =>
-        String(u?.id || "") === "usr_guest_local" ||
-        marker.test(String(u?.fullName || u?.name || "").trim())
-      );
+      const removed = users.filter(u => String(u?.id || "") === "usr_guest_local");
       if (!removed.length) return 0;
       const removedIds = new Set(removed.map(u => String(u?.id || "")).filter(Boolean));
       const kept = users.filter(u => !removedIds.has(String(u?.id || "")));
