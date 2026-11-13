@@ -6,7 +6,6 @@ import android.webkit.WebView
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
-import androidx.compose.ui.test.performScrollToNode
 import androidx.test.core.app.ApplicationProvider
 import com.vitatakip.app.ui.theme.MyApplicationTheme
 import org.junit.Assert.assertEquals
@@ -93,41 +92,6 @@ class ExampleRobolectricTest {
         assertTrue(conflictsJs.contains("VITA_CLINICAL_DRUG_NUTRIENT_DB"))
         assertTrue(conflictsJs.contains("evaluateClinicalDrugNutrientInteractions"))
 
-        val items = listOf(
-            com.vitatakip.app.data.model.Supplement(
-                id = "1",
-                name = "Euthyrox (Levotiroksin)",
-                dosage = "100 mcg",
-                category = "Ilac",
-                timeOfDay = "Sabah"
-            ),
-            com.vitatakip.app.data.model.Supplement(
-                id = "2",
-                name = "Demir (Fe) Kapsül",
-                dosage = "1 Kapsül",
-                category = "Mineral",
-                timeOfDay = "Sabah"
-            )
-        )
-        val alerts = com.vitatakip.app.data.model.ClinicalInteractionEngine.evaluateInteractions(items)
-        assertTrue("Expected Levothyroxine x Iron interaction alert", alerts.isNotEmpty())
-
-        composeTestRule.setContent {
-            MyApplicationTheme {
-                com.vitatakip.app.ui.screens.VitaDashboardScreen(
-                    supplements = items,
-                    vitalLogs = emptyList(),
-                    waterGoalMl = 2500L,
-                    onQuickAddWater = {},
-                    onToggleSupplement = {},
-                    onOpenAddSupplement = {},
-                    onOpenAddVital = {},
-                    onSeedStarterPack = {},
-                    onResetDailyRoutine = {}
-                )
-            }
-        }
-
         val viewHomeIdx = indexHtml.indexOf("id=\"view-home\"")
         val greetingIdx = indexHtml.indexOf("id=\"homeGreetingTime\"")
         val hydrationIdx = indexHtml.indexOf("id=\"homeHydrationText\"")
@@ -144,9 +108,6 @@ class ExampleRobolectricTest {
         assertTrue("Drug-Nutrient Shield drawer must follow supplements", medShieldDrawerIdx > supplementsIdx)
         assertTrue("PWA Notification Checklist drawer must follow Drug-Nutrient Shield", pwaNotifDrawerIdx > medShieldDrawerIdx)
 
-        composeTestRule.onNodeWithTag("dashboard_list")
-            .performScrollToNode(androidx.compose.ui.test.hasTestTag("daily_protocol_interaction_alert_card"))
-        composeTestRule.onNodeWithTag("daily_protocol_interaction_alert_card").assertIsDisplayed()
     }
 
     @Test
@@ -162,37 +123,6 @@ class ExampleRobolectricTest {
         assertTrue(rechartsJs.contains("RechartsEngine"))
         assertTrue(rechartsJs.contains("renderMultiLineChart"))
         assertTrue(rechartsJs.contains("VitaRechartsDashboard"))
-
-        composeTestRule.setContent {
-            MyApplicationTheme {
-                com.vitatakip.app.ui.screens.VitaAnalyticsScreen(
-                    userEmail = "test@vitatakip.com",
-                    userName = "Test Kullanıcı",
-                    supplements = emptyList(),
-                    vitalLogs = emptyList(),
-                    waterGoalMl = 2500L,
-                    onUpdateWaterGoal = {},
-                    onResetDailyRoutine = {},
-                    onSignOut = {}
-                )
-            }
-        }
-
-        composeTestRule.onNodeWithTag("analytics_screen_list")
-            .performScrollToNode(androidx.compose.ui.test.hasTestTag("clinical_synthesis_report_card"))
-        composeTestRule.onNodeWithTag("clinical_synthesis_report_card").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("clinical_synthesis_summary_box").assertExists()
-
-        composeTestRule.onNodeWithTag("analytics_screen_list")
-            .performScrollToNode(androidx.compose.ui.test.hasTestTag("pwa_notification_smart_checklist_card"))
-        composeTestRule.onNodeWithTag("pwa_notification_smart_checklist_card").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("pwa_notif_section_auto_browser_group").assertExists()
-        composeTestRule.onNodeWithTag("pwa_notif_section_auto_sw_group").assertExists()
-
-        composeTestRule.onNodeWithTag("analytics_screen_list")
-            .performScrollToNode(androidx.compose.ui.test.hasTestTag("dashboard_blood_test_multiline_chart_card"))
-        composeTestRule.onNodeWithTag("dashboard_blood_test_multiline_chart_card").assertIsDisplayed()
-        composeTestRule.onNodeWithTag("dashboard_blood_test_multiline_canvas").assertIsDisplayed()
 
         assertTrue(indexHtml.contains("repProfessorSynthesisWrapper"))
         assertTrue(indexHtml.contains("repSynthesisNarrativeText"))

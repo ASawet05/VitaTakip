@@ -531,7 +531,7 @@ fun VitaTakipWebPortalScreen() {
         if (pendingReq != null) {
             runCatching {
                 if (isGranted) {
-                    pendingReq.grant(pendingReq.resources)
+                    pendingReq.grant(arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
                 } else {
                     pendingReq.deny()
                 }
@@ -635,10 +635,12 @@ fun VitaTakipWebPortalScreen() {
                         domStorageEnabled = true
                         @Suppress("DEPRECATION")
                         databaseEnabled = true
-                        allowFileAccess = true
+                        // Güvenlik: sayfa cihazdaki dosyaları okuyamaz. file:///android_asset bu ayardan etkilenmez.
+                        // (Adres file:// olarak kalır; değişirse mevcut kullanıcıların yerel kayıtları görünmez olur.)
+                        allowFileAccess = false
                         allowContentAccess = true
                         @Suppress("DEPRECATION")
-                        allowFileAccessFromFileURLs = true
+                        allowFileAccessFromFileURLs = false
                         @Suppress("DEPRECATION")
                         allowUniversalAccessFromFileURLs = false // yerel sayfa her siteye sınırsız erişemez (güvenlik)
                         mediaPlaybackRequiresUserGesture = false
@@ -809,12 +811,15 @@ fun VitaTakipWebPortalScreen() {
 
                         override fun onPermissionRequest(request: PermissionRequest?) {
                             if (request == null) return
+                            // Yalnızca kamera (barkod okuma) verilir; mikrofon vb. diğer istekler reddedilir.
                             val needsCamera = request.resources.contains(PermissionRequest.RESOURCE_VIDEO_CAPTURE)
-                            if (needsCamera && ContextCompat.checkSelfPermission(ctx, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+                            if (!needsCamera) {
+                                request.deny()
+                            } else if (ContextCompat.checkSelfPermission(ctx, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
                                 pendingWebPermissionRequest = request
                                 cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                             } else {
-                                request.grant(request.resources)
+                                request.grant(arrayOf(PermissionRequest.RESOURCE_VIDEO_CAPTURE))
                             }
                         }
                     }

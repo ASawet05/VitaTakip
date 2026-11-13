@@ -861,6 +861,52 @@ let currentAuthMode = "login";
       }
     }
 
+    /* ŞİFRE ÖZETİ: PBKDF2-SHA256, kullanıcı başına rastgele tuz. Kayıt biçimi: "pbkdf2$<tur>$<tuzB64>$<ozetB64>".
+       Eski kayıtlar (sabit tuzlu/tuzsuz sha256; Türkçe karakterleri bozan eski fonksiyon) yalnızca doğrulanır
+       ve başarılı girişte yeni biçime taşınır. */
+    const VITA_PBKDF2_ITERATIONS = 310000;
+    const vitaB64 = bytes => btoa(String.fromCharCode(...new Uint8Array(bytes)));
+    const vitaFromB64 = text => Uint8Array.from(atob(text), c => c.charCodeAt(0));
+    function vitaCanUseWebCrypto() {
+      return typeof crypto !== "undefined" && crypto.subtle && typeof crypto.getRandomValues === "function" && typeof TextEncoder === "function";
+    }
+    async function vitaPbkdf2(password, saltBytes, iterations) {
+      const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(String(password)), "PBKDF2", false, ["deriveBits"]);
+      return crypto.subtle.deriveBits({ name: "PBKDF2", hash: "SHA-256", salt: saltBytes, iterations }, key, 256);
+    }
+    /* Web Crypto yoksa (ör. http üzerinden açılan sayfa) UTF-8 doğru kodlanmış tuzlu sha256 kullanılır. */
+    function vitaUtf8Sha256(text) { return sha256(unescape(encodeURIComponent(String(text)))); }
+
+    async function createVitaPasswordRecord(password) {
+      if (vitaCanUseWebCrypto()) {
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const bits = await vitaPbkdf2(password, salt, VITA_PBKDF2_ITERATIONS);
+        return `pbkdf2$${VITA_PBKDF2_ITERATIONS}$${vitaB64(salt)}$${vitaB64(bits)}`;
+      }
+      const salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
+      return `sha256u8$${salt}$${vitaUtf8Sha256(salt + "$" + password)}`;
+    }
+
+    /* Döner: { ok, needsUpgrade } */
+    async function verifyVitaPassword(password, stored) {
+      const record = String(stored || "");
+      const constantTimeEqual = (a, b) => { if (a.length !== b.length) return false; let d = 0; for (let i = 0; i < a.length; i++) d |= a.charCodeAt(i) ^ b.charCodeAt(i); return d === 0; };
+      if (record.startsWith("pbkdf2$")) {
+        const [, iterText, saltB64, hashB64] = record.split("$");
+        const iterations = Number(iterText);
+        if (!vitaCanUseWebCrypto() || !Number.isFinite(iterations) || iterations < 1) return { ok: false, needsUpgrade: false };
+        const bits = await vitaPbkdf2(password, vitaFromB64(saltB64), iterations);
+        return { ok: constantTimeEqual(vitaB64(bits), hashB64), needsUpgrade: iterations < VITA_PBKDF2_ITERATIONS };
+      }
+      if (record.startsWith("sha256u8$")) {
+        const [, salt, hash] = record.split("$");
+        return { ok: constantTimeEqual(vitaUtf8Sha256(salt + "$" + password), hash), needsUpgrade: vitaCanUseWebCrypto() };
+      }
+      // Eski biçimler
+      const legacyOk = record === sha256(password + "_vitatakip_salt_2026") || record === sha256(password);
+      return { ok: legacyOk, needsUpgrade: legacyOk };
+    }
+
     function submitAuthForm(event) {
       if (event && typeof event.preventDefault === "function") event.preventDefault();
       if (window.SoundEffects) SoundEffects.playClick();
@@ -868,7 +914,7 @@ let currentAuthMode = "login";
       return false;
     }
 
-    function handleAuthSubmit() {
+    async function handleAuthSubmit() {
       const nameInput = document.getElementById("authInputFullName");
       const passwordInput = document.getElementById("authInputPassword");
       const confirmInput = document.getElementById("authInputPasswordConfirm");
@@ -910,8 +956,6 @@ let currentAuthMode = "login";
       }
 
       try {
-        const passHash = sha256(password + "_vitatakip_salt_2026");
-        const legacyHash = sha256(password);
         const users = getUsersDb();
         const normalizedName = fullName.toLocaleLowerCase("tr-TR");
 
@@ -923,7 +967,7 @@ let currentAuthMode = "login";
             return;
           }
 
-          const newUser = { id: `usr_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, fullName, password: passHash, createdDate: new Date().toISOString() };
+          const newUser = { id: `usr_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`, fullName, password: await createVitaPasswordRecord(password), createdDate: new Date().toISOString() };
           users.push(newUser);
           saveUsersDb(users);
 
@@ -957,7 +1001,12 @@ let currentAuthMode = "login";
           showToast("Hesap Oluşturuldu", "Hesabınız hazır. Şimdi profil bilgilerinizi tamamlayın.", "success");
           if (typeof window.triggerVitaInstallToastOnce === "function") window.triggerVitaInstallToastOnce(activeUserId);
         } else {
-          const found = users.find(u => String(u.fullName || "").trim().toLocaleLowerCase("tr-TR") === normalizedName && (u.password === passHash || u.password === legacyHash));
+          let found = null;
+          let needsUpgrade = false;
+          for (const candidate of users.filter(u => String(u.fullName || "").trim().toLocaleLowerCase("tr-TR") === normalizedName)) {
+            const check = await verifyVitaPassword(password, candidate.password);
+            if (check.ok) { found = candidate; needsUpgrade = check.needsUpgrade; break; }
+          }
           if (!found) {
             const nameExists = users.some(u => String(u.fullName || "").trim().toLocaleLowerCase("tr-TR") === normalizedName);
             if (!nameExists) {
@@ -969,9 +1018,9 @@ let currentAuthMode = "login";
             return;
           }
 
-          // Eski kayıt biçimlerinden başarılı girişte mevcut yerel hash biçimine taşı.
-          if (found.password !== passHash) {
-            found.password = passHash;
+          // Eski kayıt biçimlerinden başarılı girişte güncel PBKDF2 biçimine taşı.
+          if (needsUpgrade) {
+            found.password = await createVitaPasswordRecord(password);
             saveUsersDb(users);
           }
 
@@ -1050,7 +1099,9 @@ let currentAuthMode = "login";
       const firstConfirm = confirm(`${displayName} hesabına ait VitaTakip verileri bu tarayıcıdan kalıcı olarak silinecek. Bu işlem geri alınamaz. Devam etmek istiyor musunuz?`);
       if (!firstConfirm) return;
       const typedConfirm = prompt('Onaylamak için SİL yazın.');
-      if (typedConfirm !== "SİL") {
+      // "SİL", "sil", "SIL", "Sil" hepsi kabul edilir (klavyede İ/I ve büyük/küçük harf farkı yüzünden sessiz iptal olmasın).
+      const normalizedConfirm = String(typedConfirm || "").trim().toLocaleUpperCase("tr-TR").replace(/I/g, "İ");
+      if (normalizedConfirm !== "SİL") {
         const notice = document.getElementById("authNoticeMsg");
         if (notice) { notice.textContent = "Silme işlemi iptal edildi. Verileriniz korundu."; notice.classList.remove("hidden"); }
         return;
